@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  build:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    command: sh -c "yarn install && yarn build"
+#  apache:
+#    image: httpd:2.4
+#    ports:
+#      - '80:80'
+#    volumes:
+#      - ./dist:/usr/local/apache2/htdocs
+#      - ./apache.conf:/usr/local/apache2/conf/httpd.conf
+#    depends_on:
+#      - build
