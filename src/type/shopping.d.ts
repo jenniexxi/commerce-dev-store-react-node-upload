@@ -1,0 +1,166 @@
+export const AVAILABLE_INFO_FAIL_CODES = {
+  /** 성인 인증 필요 */
+  REQUEST_ADULT_CERTIFICATION: 'CART.BUY_AVAILABLE.REQUEST_ADULT_CERTIFICATION',
+  /** 옵션 선택 여부 */
+  IS_OPTION_SELECT: 'CART.BUY_AVAILABLE.IS_OPTION_SELECT',
+  /** 판매가능 재고 보다 부족한 경우 */
+  SALE_STOCK_LACK: 'CART.BUY_AVAILABLE.SALE_STOCK_LACK',
+  /** 추가상품 판매가능 재고 보다 부족한 경우 */
+  ADD_SALE_STOCK_LACK: 'CART.BUY_AVAILABLE.ADD_SALE_STOCK_LACK',
+  /** 1인 최대 구매수량 초과 */
+  BUY_MAX_BUY_CNT_EXCESS: 'CART.BUY_AVAILABLE.BUY_MAX_BUY_CNT_EXCESS',
+  /** 1회 최대 구매수량 초과 */
+  MAX_BUY_CNT_EXCESS: 'CART.BUY_AVAILABLE.MAX_BUY_CNT_EXCESS',
+  /** 최소 구매수량 미만 */
+  MIN_BUY_CNT_EXCESS: 'CART.BUY_AVAILABLE.MIN_BUY_CNT_EXCESS',
+  /** 상품 판매 불가 상태 */
+  NOT_GOODS_SALE_STATUS: 'CART.BUY_AVAILABLE.NOT_GOODS_SALE_STATUS',
+  /** 비회원 1인 최대 구매 수량 조건 상품 이용불가 */
+  NON_BUYER_BUY_MAX_BUY_CNT_CONDITION: 'CART.BUY_AVAILABLE.NON_BUYER_BUY_MAX_BUY_CNT_CONDITION',
+  /** 비회원 1회 최대 구매 수량 조건 상품 이용불가 */
+  NON_BUYER_MAX_BUY_CNT_CONDITION: 'CART.BUY_AVAILABLE.NON_BUYER_MAX_BUY_CNT_CONDITION',
+} as const;
+
+export type AvailableInfoFailCode = (typeof AVAILABLE_INFO_FAIL_CODES)[keyof typeof AVAILABLE_INFO_FAIL_CODES];
+
+type CartSessionErrorCode = 'CART.BUY_AVAILABLE.EMPTY_GOODS'; // 세션 끊김(변경)으로 인해 상품 정보 없는 케이스
+export const CART_SESSION_ERROR_CODE: CartSessionErrorCode = 'CART.BUY_AVAILABLE.EMPTY_GOODS';
+
+export const CLAUSE_TYPE_CODES = {
+  CLAUSE: 'POLICY.CLAUSE_TYPE.CLAUSE', //이용약관
+  PRIVATE: 'POLICY.CLAUSE_TYPE.PRIVATE', //개인정보처리방침
+  SELLER: 'POLICY.CLAUSE_TYPE.SELLER', //셀러
+} as const;
+
+/**
+ * 약관 유형
+ */
+export type ClauseTypeCode = (typeof CLAUSE_TYPE_CODES)[keyof typeof CLAUSE_TYPE_CODES];
+
+/** 약관 상세 유형 */
+export const CLAUSE_DETAIL_TYPE_CODES = {
+  /**  이용약관 */
+  CLAUSE: 'POLICY.CLAUSE_DETAIL_TYPE.CLAUSE',
+  /**  개인정보처리방침 */
+  PRIVATE: 'POLICY.CLAUSE_DETAIL_TYPE.PRIVATE',
+  /** 개인정보 수집 및 이용동의(필수) */
+  COLLECT_PRIVATE: 'POLICY.CLAUSE_DETAIL_TYPE.COLLECT_PRIVATE',
+  /** 개인정보 수집 및 이용동의(비회원) */
+  COLLECT_PRIVATE_NON_MEMBER: 'POLICY.CLAUSE_DETAIL_TYPE.COLLECT_PRIVATE_NON_MEMBER',
+  /** 개인정보 처리위탁 */
+  CONSIGNMENT_PRIVATE: 'POLICY.CLAUSE_DETAIL_TYPE.CONSIGNMENT_PRIVATE',
+  /**  개인정보 제3자 제공동의 */
+  PROVIDE_PRIVATE: 'POLICY.CLAUSE_DETAIL_TYPE.PROVIDE_PRIVATE',
+  /**  광고성 목적의 개인정보 수집 및 이용동의(선택) */
+  MARKETING_PRIVATE: 'POLICY.CLAUSE_DETAIL_TYPE.MARKETING_PRIVATE',
+} as const;
+
+/**
+ * 약관 상세 유형
+ */
+export type ClauseDetailTypeCode = (typeof CLAUSE_DETAIL_TYPE_CODES)[keyof typeof CLAUSE_DETAIL_TYPE_CODES];
+
+// #region 적립금
+// 적립금 사용 단위 코드
+export const MILEAGE_UNIT_CODES = {
+  TENS: 'MILEAGE.USE_UNIT.TENS',
+  HUNDREDS: 'MILEAGE.USE_UNIT.HUNDREDS',
+} as const;
+
+export type MileageUnitCode = (typeof MILEAGE_UNIT_CODES)[keyof typeof MILEAGE_UNIT_CODES];
+// #endregion
+
+const MAXIMUM_MILEAGE_TYPES = {
+  /** 제한없음 */
+  NO_LIMIT: 'MILEAGE.MAXIMUM_TYPE.NO_LIMIT',
+  /** 정액 */
+  FIXED: 'MILEAGE.MAXIMUM_TYPE.FIXED',
+  /** 정률 */
+  RATE: 'MILEAGE.MAXIMUM_TYPE.RATE',
+} as const;
+
+export type MaximumMileageType = (typeof MAXIMUM_MILEAGE_TYPES)[keyof typeof MAXIMUM_MILEAGE_TYPES];
+
+// 배송요청사항 Enum 목록
+// ORDER.SHIPPING_REQUEST.CALL_BEFORE_DELIVERY: 배송 전에 미리 연락 바랍니다.
+// ORDER.SHIPPING_REQUEST.FRONT_DOOR: 문 앞에 놓아주세요.
+// ORDER.SHIPPING_REQUEST.SECURITY_OFFICE: 부재 시 경비실에 맡겨주세요.
+// ORDER.SHIPPING_REQUEST.CALL_ABSENCE: 부재 시 전화주시거나 문자 남겨주세요.
+// ORDER.SHIPPING_REQUEST.DIRECT: 직접입력
+
+export const DELIVERY_REQUEST = [
+  {
+    label: '문 앞에 놓아주세요.',
+    value: { code: 'ORDER.SHIPPING_REQUEST.FRONT_DOOR', codeName: '문 앞에 놓아주세요.' },
+  },
+  {
+    label: '배송 전에 미리 연락 바랍니다.',
+    value: { code: 'ORDER.SHIPPING_REQUEST.CALL_BEFORE_DELIVERY', codeName: '배송 전에 미리 연락 바랍니다.' },
+  },
+  {
+    label: '부재 시 경비실에 맡겨 주세요.',
+    value: { code: 'ORDER.SHIPPING_REQUEST.SECURITY_OFFICE', codeName: '부재 시 경비실에 맡겨 주세요.' },
+  },
+  {
+    label: '부재 시 전화 주시거나 문자 남겨주세요.',
+    value: { code: 'ORDER.SHIPPING_REQUEST.CALL_ABSENCE', codeName: '부재 시 전화 주시거나 문자 남겨주세요.' },
+  },
+  { label: '직접 입력', value: { code: 'ORDER.SHIPPING_REQUEST.DIRECT', codeName: '직접 입력' } },
+];
+
+/**
+ * 주문생성 실패 에러코드
+ */
+const ORDER_ERROR_CODES = {
+  STORE_LIMITATIONS_ORDER: 'SHIPPING_ORDER.REQUEST_ORDER.STORE_LIMITATIONS_ORDER', // 스토어 주문 제한
+  EMPTY_ORDER_PASSWORD: 'SHIPPING_ORDER.REQUEST_ORDER.EMPTY_ORDER_PASSWORD', // 비회원 비밀번호 정보 없음
+  REQUEST_USE_SERVICE_CERTIFICATION: 'SHIPPING_ORDER.REQUEST_ORDER.REQUEST_USE_SERVICE_CERTIFICATION', // 서비스 이용인증 필요
+  IS_NOT_AVAILABLE_ORDER: 'SHIPPING_ORDER.REQUEST_ORDER.IS_NOT_AVAILABLE_ORDER', // 주문 가능 검증 실패
+  EMPTY_GOODS: 'SHIPPING_ORDER.REQUEST_ORDER.EMPTY_GOODS', // 상품 정보 없음(세션 종료된 케이스)
+  COUPON_USE_CHANGE: 'SHIPPING_ORDER.REQUEST_ORDER.COUPON_USE_CHANGE', // 쿠폰 사용 변경
+  COUPON_INFO_CHANGE: 'SHIPPING_ORDER.REQUEST_ORDER.COUPON_INFO_CHANGE', // 쿠폰 정보 변경
+  COUPON_SETTING_CHANGE: 'SHIPPING_ORDER.REQUEST_ORDER.COUPON_SETTING_CHANGE', // 쿠폰 설정 변경
+  MILEAGE_SETTING_CHANGE: 'SHIPPING_ORDER.REQUEST_ORDER.MILEAGE_SETTING_CHANGE', // 적립금 최소 구매 제한/최대한도 제한 설정을 변경
+  MILEAGE_USE_CHANGE: 'SHIPPING_ORDER.REQUEST_ORDER.MILEAGE_USE_CHANGE', // 적립금 미사용 변경
+  MILEAGE_NOT_AVAILABLE_MILEAGE: 'SHIPPING_ORDER.REQUEST_ORDER.MILEAGE_NOT_AVAILABLE_MILEAGE', // 적립금 적립금 소멸 및 사용
+  BUYER_GROUP_SETTING_CHANGE: 'SHIPPING_ORDER.REQUEST_ORDER.BUYER_GROUP_SETTING_CHANGE', // 회원 등급 사용 변경 및 설정 변경
+} as const;
+
+export type OrderErrorCode = AvailableInfoFailCode | (typeof ORDER_ERROR_CODES)[keyof typeof ORDER_ERROR_CODES];
+
+// #region File
+export const FILE_TYPE_CODES = {
+  EXCEL_UPLOAD: 'FILES.FILES_TYPE.EXCEL_UPLOAD', // 엑셀 업로드
+  EXCEL_DOWNLOAD: 'FILES.FILE_TYPE.EXCEL_DOWNLOAD', // 엑셀 다운로드
+  GOODS_BASIC: 'FILES.FILES_TYPE.GOODS_BASIC', // 상품 기본 이미지
+  GOODS_ADD: 'FILE.FILE_TYPE.GOODS_ADD', // 상품 추가 이미지
+  EDITOR: 'FILES.FILES_TYPE.EDITOR', // 에디터
+  BRAND: 'FILES.FILES_TYPE.BRAND', // 브랜드 이미지
+  STORE_LOGO_IMAGE: 'FILES.FILES_TYPE.STORE_LOGO_IMAGE', // 로고 이미지
+  FAVICON_IMAGE: 'FILES.FILES_TYPE.STORE_FAVICON_IMAGE', // 파비콘 이미지
+  GOODS_BADGE: 'FILES.FILES_TYPE.BADGE', //상품 뱃지 이미지
+  SHOP_FEEDBACK_IMAGE: 'FILES.FILES_TYPE.FEEDBACK', // 스토어 후기 이미지
+  QNA_IMAGE: 'FILES.FILES_TYPE.QNA', // QNA 이미지
+  NOTICE_IMAGE: '"FILES.FILES_TYPE.NOTICE', //공지사항 이미지
+  MAIN_MANAGE: '"FILES.FILES_TYPE.MAIN_MANAGE', //메인 전시 이미지
+  EXHIBITION_IMAGE: 'FILES.FILES_TYPE.EXHIBITION_IMAGE', // 기획전 이미지
+
+  // #region TODO: [23.08.07] 문서에 정의되지 않은 파일 타입 추후 확인하고 삭제 예정
+  TOP_BANNER_IMAGE: 'FILE.FILE_TYPE.MAIN_MANAGE.TOP_BANNER_IMAGE', // 상단 띠 배너 이미지
+  MAIN_BANNER_IMAGE: 'FILE.FILE_TYPE.MAIN_MANAGE.MAIN_BANNER_IMAGE', // 메인 배너 이미지
+  BANNER_IMAGE: 'FILE.FILE_TYPE.MAIN_MANAGE.BANNER_IMAGE', // 띠 배너 이미지
+  GOODS_EXHIBITION_IMAGE: 'FILE.FILE_TYPE.MAIN_MANAGE.GOODS_EXHIBITION_IMAGE', // 상품 전시 이미지
+  EXTRA_SERVICE: 'FILE.FILE_TYPE.EXTRA_SERVICE', // 부가서비스 첨부 파일
+  ROBOTS_TXT: 'FILE.FILE_TYPE.ROBOTS_TXT', // 스토어 검색 최적화 설정
+  // #endregion
+} as const;
+type FileType = (typeof FILE_TYPE_CODES)[keyof typeof FILE_TYPE_CODES];
+
+export const UPLOAD_FILE_ERROR_CODE = {
+  FILE_TYPE_VALIDATION_FAILED: 'FILE.UPLOAD_TYPE.FILE_TYPE_VALIDATION_FAILED', // file 유효성 검증 실패
+  UPLOAD_FAILED: 'FILE.UPLOAD_TYPE.UPLOAD_FAILED', //파일 업로드 실패
+};
+
+type UploadFileErrorCode = (typeof UPLOAD_FILE_ERROR_CODE)[keyof typeof UPLOAD_FILE_ERROR_CODE];
+
+export type { FileType, UploadFileErrorCode };

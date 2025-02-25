@@ -1,0 +1,186 @@
+import { OrderInfo } from '@apis/mypageApi';
+
+//주문조회 전체
+export const MYPAGE_SORT_CODES = {
+  ALL_ORDER: 'ORDER.MYPAGE_ITEM_STATUS.ALL_ORDER', // 전체
+  DEPOSIT_READY: 'ORDER.MYPAGE_ITEM_STATUS.DEPOSIT_READY', // 입금예정
+  DEPOSIT_COMPLETE: 'ORDER.MYPAGE_ITEM_STATUS.DEPOSIT_COMPLETE', // 입금확인
+  SHIPPING_READY: 'ORDER.MYPAGE_ITEM_STATUS.SHIPPING_READY', // 배송준비중
+  SHIPPING_ING: 'ORDER.MYPAGE_ITEM_STATUS.SHIPPING_ING', // 배송중
+  SHIPPING_COMPLETE: 'ORDER.MYPAGE_ITEM_STATUS.SHIPPING_COMPLETE', // 배송완료
+  FINISH: 'ORDER.MYPAGE_ITEM_STATUS.FINISH', // 구매확정
+  CANCEL: 'ORDER.MYPAGE_ITEM_STATUS.CANCEL', // 취소
+  EXCHANGE: 'ORDER.MYPAGE_ITEM_STATUS.EXCHANGE', // 교환
+  RETURN: 'ORDER.MYPAGE_ITEM_STATUS.RETURN', // 반품
+} as const;
+
+export type MypageSortKey = (typeof MYPAGE_SORT_CODES)[keyof typeof MYPAGE_SORT_CODES];
+
+/**
+ * 결제 상태
+ */
+export const PAYMENT_STATUS_CODES = {
+  /** 전체 */
+  ALL_ORDER: 'ORDER.MYPAGE_ITEM_STATUS.ALL_ORDER',
+  /** 결제대기 */
+  PAYMENT_WAIT: 'PAYMENT.PAYMENT_STATUS.PAYMENT_WAIT',
+  /** 입금예정 */
+  DEPOSIT_READY: 'PAYMENT.PAYMENT_STATUS.DEPOSIT_READY',
+  /** 입금전취소 */
+  DEPOSIT_CANCEL: 'PAYMENT.PAYMENT_STATUS.DEPOSIT_CANCEL',
+  /** 입금완료 */
+  DEPOSIT_COMPLETE: 'PAYMENT.PAYMENT_STATUS.DEPOSIT_COMPLETE',
+  /** 입금완료 (수동) */
+  DEPOSIT_COMPLETE_MANUAL: 'PAYMENT.PAYMENT_STATUS.DEPOSIT_COMPLETE_MANUAL',
+  /** 환불완료  */
+  // NOTI: 마이페이지 > 추가결제예정에서만 쓰이는 값
+  REFUND_COMPLETE: 'PAYMENT.PAYMENT_STATUS.REFUND_COMPLETE',
+  REFUND_COMPLETE_MANUAL: 'PAYMENT.PAYMENT_STATUS.REFUND_COMPLETE_MANUAL',
+} as const;
+
+export type PaymentStatusCode = (typeof PAYMENT_STATUS_CODES)[keyof typeof PAYMENT_STATUS_CODES];
+
+/**
+ * 추가 결제 수단
+ */
+export const ADD_PAYMENT_METHOD_CODES = {
+  /** 신용카드 */
+  CARD: 'ORDER.PAYMENT_METHOD.CARD',
+
+  /** 실시간계좌이체 */
+  TRANSFER_ACCOUNT: 'ORDER.PAYMENT_METHOD.TRANSFER_ACCOUNT',
+};
+
+/**
+ * 일반 결제 수단
+ */
+export const BASIC_PAYMENT_METHOD_CODES = {
+  ...ADD_PAYMENT_METHOD_CODES,
+
+  /** 가상계좌 */
+  VIRTUAL_ACCOUNT: 'ORDER.PAYMENT_METHOD.VIRTUAL_ACCOUNT',
+};
+
+/**
+ * 간편 결제 수단
+ */
+export const EASY_PAYMENT_METHOD_CODES = {
+  /** 네이버페이 */
+  NAVER_PAY: 'ORDER.PAYMENT_METHOD.NAVER_PAY',
+
+  KAKAO_PAY: 'ORDER.PAYMENT_METHOD.KAKAO_PAY',
+
+  K_BANK_PAY: 'ORDER.PAYMENT_METHOD.K_BANK_PAY',
+
+  K_PAY: 'ORDER.PAYMENT_METHOD.K_PAY',
+
+  L_PAY: 'ORDER.PAYMENT_METHOD.L_PAY',
+
+  PAYCO: 'ORDER.PAYMENT_METHOD.PAYCO',
+
+  SAMSUNG_PAY: 'ORDER.PAYMENT_METHOD.SAMSUNG_PAY',
+
+  SSG_PAY: 'ORDER.PAYMENT_METHOD.SSG_PAY',
+
+  TOSS: 'ORDER.PAYMENT_METHOD.TOSS',
+};
+
+/**
+ * 결제수단
+ */
+export const paymentMethodCode = {
+  ...BASIC_PAYMENT_METHOD_CODES,
+  ...EASY_PAYMENT_METHOD_CODES,
+  ...{ FREE: 'ORDER.PAYMENT_METHOD.FREE' }, //0원 결제
+} as const;
+
+export type AddPaymentMethodCode = (typeof ADD_PAYMENT_METHOD_CODES)[keyof typeof ADD_PAYMENT_METHOD_CODES];
+export type EasyPaymentMethodCode = (typeof EASY_PAYMENT_METHOD_CODES)[keyof typeof EASY_PAYMENT_METHOD_CODES];
+export type BasicPaymentMethodCode = (typeof BASIC_PAYMENT_METHOD_CODES)[keyof typeof BASIC_PAYMENT_METHOD_CODES];
+export type PaymentMethodCode = (typeof paymentMethodCode)[keyof typeof paymentMethodCode];
+
+/**
+ * 배송지 변경 실패 에러 코드
+ */
+export const ORDER_ADDRESS_ERROR_STATE_CODE = {
+  ADD_SHIPPING_PRICE: 'ORDER.SHIPPING_ADDRESS.ADD_SHIPPING_PRICE', // 계산한 추가배송비와 조회한 추가배송비가 다릅니다.
+} as const;
+type PutOrderAddressErrorStateCode =
+  (typeof ORDER_ADDRESS_ERROR_STATE_CODE)[keyof typeof ORDER_ADDRESS_ERROR_STATE_CODE];
+
+export const REQUEST_CLAIM_ERROR_CODES = {
+  /**
+   * 변경 가능한 주문상태가 아님
+   */
+  NOT_CHANGE_STATUS: 'ORDER.CLAIM_RESULT.NOT_CHANGE_STATUS',
+  /**
+   * 추가 결제건 처리 불가
+   */
+  NOT_CHANGE_ADDITIONAL_PAYMENT: 'ORDER.CLAIM_RESULT.NOT_CHANGE_ADDITIONAL_PAYMENT',
+  /**
+   * 주문상품 현재 클레임 진행중 존재
+   */
+  ORDER_ITEM_CLAIM_ING: 'ORDER.CLAIM_RESULT.ORDER_ITEM_CLAIM_ING',
+  /**
+   * 같은 배송정책 내에 클레임 진행중 존재
+   */
+  SHIPPING_GROUP_CLAIM_ING: 'ORDER.CLAIM_RESULT.SHIPPING_GROUP_CLAIM_ING',
+  /**
+   * 주문상품 현재 클레임 진행중 존재 - 추가결제예정 존재
+   */
+  ORDER_ITEM_CLAIM_ING_ADD_PAYMENT_READY: 'ORDER.CLAIM_RESULT.ORDER_ITEM_CLAIM_ING_ADD_PAYMENT_READY',
+  /**
+   * 같은 배송정책 내에 클레임 진행중 존재 - 추가결제예정 존재
+   */
+  SHIPPING_GROUP_CLAIM_ING_ADD_PAYMENT_READY: 'ORDER.CLAIM_RESULT.SHIPPING_GROUP_CLAIM_ING_ADD_PAYMENT_READY',
+  /**
+   * 본 상품 전체 취소/반품 시 추가상품 부분 취소/반품 처리 불가
+   */
+  NOT_PART_CLAIM_ADD_GOODS: 'ORDER.CLAIM_RESULT.NOT_PART_CLAIM_ADD_GOODS',
+  /**
+   * 추가결제 환불오류
+   */
+  ADD_PAYMENT_REFUND_ERROR: 'ORDER.CLAIM_REQUEST.ADD_PAYMENT_REFUND_ERROR',
+  /**
+   * 클레임 신청 성공했지만, 변동배송비 발생하여 환불완료가 정상적으로 처리되지 않은 경우 (환불 요청으로 전환)
+   */
+  SUCCESS_CHANGE_APPLY: 'ORDER.CLAIM_RESULT.SUCCESS_CHANGE_APPLY',
+  /**
+   * 교환 재배송 상품 재고 부족
+   */
+  EXCHANGE_RE_SHIPPING_OUT_OF_STOCK: 'ORDER.CLAIM_RESULT.EXCHANGE_RE_SHIPPING_OUT_OF_STOCK',
+} as const;
+
+export type ClaimRequestErrorCode = (typeof REQUEST_CLAIM_ERROR_CODES)[keyof typeof REQUEST_CLAIM_ERROR_CODES];
+
+export const OrderSorts: Record<keyof OrderInfo, MypageSortKey> = {
+  depositReadyCnt: MYPAGE_SORT_CODES['DEPOSIT_READY'],
+  depositCompleteCnt: MYPAGE_SORT_CODES['DEPOSIT_COMPLETE'],
+  shippingReadyCnt: MYPAGE_SORT_CODES['SHIPPING_READY'],
+  shippingIngCnt: MYPAGE_SORT_CODES['SHIPPING_ING'],
+  shippingCompleteCnt: MYPAGE_SORT_CODES['SHIPPING_COMPLETE'],
+  cancelCnt: MYPAGE_SORT_CODES['CANCEL'],
+  exchangeCnt: MYPAGE_SORT_CODES['EXCHANGE'],
+  returnCnt: MYPAGE_SORT_CODES['RETURN'],
+};
+
+export type ORDER_SORT_KEY = keyof OrderInfo;
+
+export const PAYMENT_TYPE = {
+  ORDER_PAYMENT_TYPE_BASIC: 'ORDER.PAYMENT_TYPE.BASIC', // 정상
+  ORDER_PAYMENT_TYPE_ADD: 'ORDER.PAYMENT_TYPE.ADD', // 추가
+};
+
+export type PaymentTypeCode = (typeof PAYMENT_TYPE)[keyof typeof PAYMENT_TYPE];
+
+export const PG_SERVICE_TYPE = {
+  PAYMENT_SERVICE_INICIS: 'PAYMENT.SERVICE.INICIS', // INICIS
+  PAYMENT_SERVICE_NO_SERVICE: 'PAYMENT.SERVICE.NO_SERVICE', // 서비스없음
+};
+export type PgServiceTypeCode = (typeof PG_SERVICE_TYPE)[keyof typeof PG_SERVICE_TYPE];
+
+export const DELIVERY_TRACKING_TYPE = {
+  GET: 'DELIVERY.HTTP_METHOD.GET',
+  POST: 'DELIVERY.HTTP_METHOD.POST',
+};
+export type DeliveryTrackingType = (typeof DELIVERY_TRACKING_TYPE)[keyof typeof DELIVERY_TRACKING_TYPE];

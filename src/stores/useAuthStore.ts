@@ -1,0 +1,12 @@
+import { create } from 'zustand';
+
+type AuthStore = {
+  token: string;
+  setToken: (token: string) => void;
+};
+
+export const useAuthStore = create<AuthStore>((set) => ({
+  token:
+    'eyJraWQiOiJFMDQ3NTA0Q0Y5NUYwNzI0QUU1ODc3QTk0NjRFRjBCMSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiIwMlRFU1QwMTBDT01NRVJDRSIsImlzcyI6Imh0dHA6Ly8xMC4yMTMuMzEuMjQ4OjkwOTMvYWNjb3VudC9hdXRoc2VydmVyIiwidXNlclNlcSI6MiwiYXV0aG9yaXRpZXMiOlsiVVNFUiIsIlJFU09VUkNFIl0sInBsYXRmb3JtcyI6W3siY2QiOiIwMTBDT01NRVJDRSIsInNlcSI6Mn1dLCJhdWQiOiJycm91bmRjbGllbnQxIiwibmJmIjoxNzM3NTk2MDU4LCJzY29wZSI6WyJyZWFkIiwid3JpdGUiXSwicmxldmVsIjoiMDEiLCJleHAiOjMyNTAzNjQ3NTk5LCJpYXQiOjE3Mzc1OTYwNTgsImp0aSI6ImM2NGZjNzhlLTQ1MTQtNDRmYS04Y2QzLTMxZmZhMzAyNTgyZCIsImF1dGhEZXZpY2VTZXEiOjJ9.kPZo7kXC0NPY8DCiZ1EDFtYkseK6eS3SBMfCSGqFFbA2VKOy6u0ruEudIQY81bDTRLGnRQJ2k-lQ-NJfklnPKyElmMDFfYS28zohYjv988GppnB7WmL__QMKZ8j4B3SMj67CovEGNM-luVeIFz3XhDhKv4FrCOr2gs1C5oDzp3bIStPn8TVbdEHm38L-hqHZ7mjXkSF_eO0gfXnGFCEwMsxPUnONzOpSncrw4to8kRHClWagZFWYypU40iKJfhOJXh8YpXpt3sefpf6AywVikfbZKmpayJdceqxmY-ilTlnle5pKn1RYBnRCBB_Ct5Q-p4Hu5dne8q-i1OhMDS6XEA',
+  setToken: (token) => set({ token }),
+}));

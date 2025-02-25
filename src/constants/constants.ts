@@ -1,0 +1,3 @@
+export const PX_TO_REM_RATIO = 10;
+
+export const RECENT_CLICK_GOODSID_KEY = 'RECENT_CLICK_GOODSID';
