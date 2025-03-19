@@ -3,15 +3,21 @@ import { useState } from 'react';
 import DaumPostcode from 'react-daum-postcode';
 import { useNavigate } from 'react-router-dom';
 
+import { T } from '@commons';
 import { Button, Input, Modal, Selector } from '@components';
 import { DELIVERY_REQUEST, MYPAGE_SORT_CODES } from '@type';
 
 import MobileInput, { MobileNumber } from '@components/input/MobileInput';
 import { showModal } from '@components/modal/ModalManager';
 
-import { PAGE_ROUTES } from '@router/Routes';
+import { useDeliveryStore } from '@stores/useDeliveryStore';
+
+import { PAGE_ROUTES, PAGE_WITHOUT_FOOTER_ROUTES } from '@router/Routes';
+
+import { colors } from '@styles/theme';
 
 import { Code } from '@apis/apiCommonType';
+import { ShippingAddress } from '@apis/claimApi';
 
 import * as S from '../ClaimRequest.style';
 import { UserAddrInfo } from '../ExchangeOrder/ExchangeOrder';
@@ -21,13 +27,13 @@ type RequestType = 'collect' | 'delivery'; // collect: 수거요청사항, deliv
 type Props = {
   title: string;
   type: RequestType;
-  userAddrInfo: UserAddrInfo;
-  onChangeValue: (value: UserAddrInfo) => void;
+  userAddrInfo?: ShippingAddress;
   collectDesc?: boolean;
   deliveryDesc?: boolean;
+  onChangeReason: (value: string) => void;
 };
 
-const ClaimAddr = ({ title, type, collectDesc, deliveryDesc, userAddrInfo, onChangeValue }: Props) => {
+const ClaimAddr = ({ title, type, collectDesc, deliveryDesc, userAddrInfo, onChangeReason }: Props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -39,10 +45,7 @@ const ClaimAddr = ({ title, type, collectDesc, deliveryDesc, userAddrInfo, onCha
     setIsModalOpen(false);
   };
 
-  const onChangeAddrValue = (key: keyof UserAddrInfo, value: string | MobileNumber | Code<string>) => {
-    const updatedInfo = { ...userAddrInfo, [key]: value };
-    onChangeValue(updatedInfo);
-  };
+  const { exchangeRequest, setExchangeRequest, exchangeRequestReason, setExchangeRequestReason } = useDeliveryStore();
 
   const handleAddressComplete = (data: any): void => {
     let fullAddress = data.address;
@@ -58,17 +61,7 @@ const ClaimAddr = ({ title, type, collectDesc, deliveryDesc, userAddrInfo, onCha
       fullAddress += extraAddress !== '' ? ` (${extraAddress})` : '';
     }
 
-    onChangeValue({
-      ...userAddrInfo,
-      zipCode: data.zonecode,
-      address: fullAddress,
-    });
-
     handleModalClose();
-  };
-
-  const onChangeDeliveryRequest = (value: string | Code<string>) => {
-    onChangeAddrValue('deliveryRequestEnum', value);
   };
 
   const checkIslandShip = () => {
@@ -88,92 +81,81 @@ const ClaimAddr = ({ title, type, collectDesc, deliveryDesc, userAddrInfo, onCha
     );
   };
 
+  const mangeAddress = () => {
+    navigate(PAGE_WITHOUT_FOOTER_ROUTES.MANAGE_ADDRESS.path);
+  };
+
   return (
     <>
-      <button onClick={checkIslandShip}>주소 찾기(도서산간 지역)</button>
       <S.ItemPart>
-        <S.SubTitle>{title}</S.SubTitle>
+        <T.Body1_NormalB $mb={16}>{title}</T.Body1_NormalB>
         <S.ItemConts>
           <S.ItemBox>
-            <label htmlFor='name'>이름(필수)</label>
-            <input
-              type='text'
-              placeholder='홍길동'
-              value={userAddrInfo.name}
-              onChange={(e) => onChangeAddrValue('name', e.target.value)}
+            <div>
+              <T.Body2_NormalB $mb={4}>{userAddrInfo?.name}</T.Body2_NormalB>
+              <T.Body2_NormalM>{userAddrInfo?.contactNumber}</T.Body2_NormalM>
+            </div>
+            <Button
+              onClick={mangeAddress}
+              title='변경'
+              size='xsm'
+              btnType='tertiary'
             />
           </S.ItemBox>
-          <S.ItemBox>
-            <label htmlFor='addr'>주소(필수)</label>
-            <S.ItemGroup>
-              <input
-                type='text'
-                value={userAddrInfo.zipCode}
-                disabled={true}
-              />
-              <Button
-                size='xsm'
-                btnType='tertiary'
-                title='주소 찾기'
-                onClick={handleModalOpen}
-              />
-            </S.ItemGroup>
-            <input
-              type='text'
-              value={userAddrInfo.address}
-              disabled={true}
-            />
-            <input
-              type='text'
-              value={userAddrInfo.detailAddress}
-              onChange={(e) => onChangeAddrValue('detailAddress', e.target.value)}
-            />
-          </S.ItemBox>
-          <S.ItemBox>
-            <label htmlFor='phone'>휴대폰번호(필수)</label>
-            <S.MoGroup>
-              <MobileInput onChangeValue={(value) => onChangeAddrValue('phonenumber', value)} />
-            </S.MoGroup>
-          </S.ItemBox>
+
+          <T.Body2_Normal
+            $color={colors.text4}
+            $mt={8}
+            $mb={16}
+          >
+            {userAddrInfo?.address} {userAddrInfo?.addressDetail}
+          </T.Body2_Normal>
+
           {type === 'collect' ? (
-            <S.ItemBox>
-              <label htmlFor='request'>수거요청사항</label>
-              <input
+            <div>
+              <Input
+                name='collectMessage'
                 type='text'
-                placeholder='배송 메시지를 입력해주세요. (30자 이내)'
+                placeholder='수거요청사항을 입력해주세요. (30자 이내)'
                 maxLength={30}
-                onChange={(e) => onChangeAddrValue('deliveryRequestEnum', e.target.value)}
+                value={userAddrInfo?.shippingMessage}
+                height='md'
+                onChange={(e) => onChangeReason(e.target.value)}
               />
               {collectDesc && (
-                <S.CollectDesc>
+                <T.Caption1_Normal
+                  $color={colors.text5}
+                  $mt={8}
+                >
                   상품 수거지 주소지에 따라 별도의 배송비가 추가 청구될 수 있습니다. (ex. 제주 및 도서산간)
-                </S.CollectDesc>
+                </T.Caption1_Normal>
               )}
-            </S.ItemBox>
+            </div>
           ) : (
-            <S.ItemBox>
-              <label htmlFor='request'>배송요청사항</label>
+            <div>
               <Selector
-                placeholder={'배송 요청사항을 선택해주세요'}
-                // defaultValue={claimReasonEnum}
-                defaultValue={userAddrInfo.deliveryRequestEnum || ''}
+                placeholder='배송요청사항을 선택해 주세요.'
+                defaultValue={exchangeRequest}
                 options={DELIVERY_REQUEST}
-                onChange={(value) => onChangeDeliveryRequest(value)}
+                onChange={setExchangeRequest}
+                isBottomPopup={true}
               />
-              {typeof userAddrInfo.deliveryRequestEnum === 'object' &&
-                userAddrInfo.deliveryRequestEnum.code === 'ORDER.SHIPPING_REQUEST.DIRECT' && (
-                  <Input
-                    name='reason'
-                    value={userAddrInfo.reason || ''}
-                    onChange={(e) => onChangeAddrValue('reason', e.target.value)}
-                  />
-                )}
-              {deliveryDesc && (
-                <S.DeliveryDesc>
-                  교환상품을 수령할 주소지에 따라 별도의 배송비가 추가 청구될 수 있습니다. (ex. 제주 및 도서산간)
-                </S.DeliveryDesc>
+              {typeof exchangeRequest === 'object' && exchangeRequest.code === 'ORDER.SHIPPING_REQUEST.DIRECT' && (
+                <Input
+                  name='reason'
+                  value={exchangeRequestReason || ''}
+                  onChange={(e) => setExchangeRequestReason(e.target.value)}
+                />
               )}
-            </S.ItemBox>
+              {deliveryDesc && (
+                <T.Caption1_Normal
+                  $color={colors.text5}
+                  $mt={8}
+                >
+                  교환상품을 수령할 주소지에 따라 별도의 배송비가 추가 청구될 수 있습니다. (ex. 제주 및 도서산간)
+                </T.Caption1_Normal>
+              )}
+            </div>
           )}
         </S.ItemConts>
       </S.ItemPart>

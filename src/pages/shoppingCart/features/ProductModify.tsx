@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { T } from '@commons';
 import { Modal, Selector, TwoButton } from '@components';
@@ -59,6 +59,7 @@ const ProductModify = ({ isVisible, goodsOptionItem, errorData, onHide, fetchCar
   useEffect(() => {
     const item = goodsOptionItem.optionList.map((goods): ChildItemType => {
       const goodsError = errorData?.find((item) => item.cartId === goods.cartId);
+
       return {
         goodsId: goodsOptionItem.goodsId,
         buyCnt: goodsError?.saleStock ?? goods.buyCnt,
@@ -254,9 +255,15 @@ const ProductModify = ({ isVisible, goodsOptionItem, errorData, onHide, fetchCar
 
   // 상품 수량 변경 핸들러
   const handleGoodsQuantityChange = (goodsOptionId: number, newQuantity: number) => {
-    setNewChildItem((prevItems) =>
-      prevItems.map((item) => (item.goodsOptionId === goodsOptionId ? { ...item, buyCnt: newQuantity } : item)),
-    );
+    if (goodsOptionId === 0) {
+      setNewChildItem((prevItems) =>
+        prevItems.map((item) => (item.goodsOptionId === null ? { ...item, buyCnt: newQuantity } : item)),
+      );
+    } else {
+      setNewChildItem((prevItems) =>
+        prevItems.map((item) => (item.goodsOptionId === goodsOptionId ? { ...item, buyCnt: newQuantity } : item)),
+      );
+    }
   };
 
   // 추가상품 Box 추가 핸들러
@@ -380,14 +387,16 @@ const ProductModify = ({ isVisible, goodsOptionItem, errorData, onHide, fetchCar
                 }));
 
                 return (
-                  <Selector<MiniCartAddGoods>
-                    key={index + item.valueStr}
-                    options={options}
-                    onChange={(value: MiniCartAddGoods) => {
-                      handleAddNewChild(value);
-                    }}
-                    placeholder={item.valueStr}
-                  />
+                  <React.Fragment key={index + item.valueStr}>
+                    <Selector<MiniCartAddGoods>
+                      options={options}
+                      onChange={(value: MiniCartAddGoods) => {
+                        handleAddNewChild(value);
+                      }}
+                      placeholder={item.valueStr}
+                    />
+                    <div style={{ height: 8 }} />
+                  </React.Fragment>
                 );
               })}
             </S.AddOpPart>
@@ -421,7 +430,6 @@ const ProductModify = ({ isVisible, goodsOptionItem, errorData, onHide, fetchCar
                   quantity={item.buyCnt}
                   maxValue={item.maxCnt}
                   setQuantity={(newQuantity) => handleGoodsQuantityChange(item.goodsOptionId || 0, newQuantity)}
-                  width={32}
                 />
                 <S.OptionPrice>
                   {numberWithCommas(item.price * item.buyCnt)}

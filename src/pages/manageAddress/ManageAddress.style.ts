@@ -43,3 +43,15 @@ export const AddAddrWrap = styled.section`
 export const AddrListWrap = styled.div`
   padding: 2rem 1.6rem;
 `;
+
+export const NonContsWrapper = styled.main``;
+
+export const TopContsSec = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 30.8rem;
+  background-color: ${(props) => props.theme.colors.background1};
+  padding: 4.75rem 1.6rem 0.8rem;
+  position: relative;
+`;

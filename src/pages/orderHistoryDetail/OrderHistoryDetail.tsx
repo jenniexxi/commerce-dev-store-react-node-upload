@@ -37,7 +37,7 @@ const OrderHistoryDetail = () => {
 
   const navigate = useNavigate();
 
-  useHeader('주문상세 조회', { showRightButton: false });
+  useHeader('주문상세 조회', { showHeader: true, showRightButton: false });
 
   const { data, refetch } = useQuery({
     queryKey: ['orderHistoryDetail', key],

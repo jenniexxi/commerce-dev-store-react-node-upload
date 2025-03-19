@@ -73,7 +73,7 @@ const BottomButton = ({ goodsId, favoriteGoodsList, onClickButton }: Props) => {
       />
       <Button
         title='구매하기'
-        width='100%'
+        width={1}
         align='center'
         onClick={onClickButton}
       />

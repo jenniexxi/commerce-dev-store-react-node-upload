@@ -22,9 +22,12 @@ import * as S from './_Buyers.style';
 type Props = {
   item: Encrypt & DeliveryAddress;
   refetch: () => void;
+  isExist?: boolean;
+  isExchange?: boolean;
 };
-const AddressItem = ({ item, refetch }: Props) => {
-  const { selectedAddr, setSelectedAddr } = useDeliveryStore();
+const AddressItem = ({ item, refetch, isExist, isExchange }: Props) => {
+  const { selectedAddr, setSelectedAddr, exchangeAddress, setExistingAddress, existingAddress, setExchangeAddress } =
+    useDeliveryStore();
   const { mutate: deleteMutation } = useMutation({
     mutationFn: (buyerAddressIdEncrypt: string) => buyersApi.deleteBuyers(buyerAddressIdEncrypt),
     onSuccess: () => {
@@ -55,6 +58,26 @@ const AddressItem = ({ item, refetch }: Props) => {
       onClick={() => {
         navigate(-1);
         setSelectedAddr(item);
+        if (isExist) {
+          setExistingAddress({
+            name: `${item.receiverName}(${item.name})`,
+            contactNumber: item.receiverCellPhone,
+            zipCode: item.zipCode,
+            address: item.receiverAddress,
+            addressDetail: item.receiverAddressDetail,
+            shippingMessage: existingAddress?.shippingMessage || '',
+          });
+        }
+        if (isExchange) {
+          setExchangeAddress({
+            name: `${item.receiverName}(${item.name})`,
+            contactNumber: item.receiverCellPhone,
+            zipCode: item.zipCode,
+            address: item.receiverAddress,
+            addressDetail: item.receiverAddressDetail,
+            shippingMessage: exchangeAddress?.shippingMessage || '',
+          });
+        }
       }}
     >
       {item.buyerAddressIdEncrypt === selectedAddr?.buyerAddressIdEncrypt ? (

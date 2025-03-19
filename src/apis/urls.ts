@@ -46,6 +46,8 @@ export const SystemUrl = {
   postPaymentRequestInfo: (paymentGatewayIdEncrypt: string) =>
     `/systems/payments/${paymentGatewayIdEncrypt}/request-data`,
   postPaymentResult: '/systems/payments/approve-data',
+  postCheckAccount: '/systems/payments/account-validation-check',
+  postCheckFreePaymentResult: '/systems/payments/approve-data/zero',
 };
 
 export const BuyersUrl = {
@@ -66,6 +68,7 @@ export const OrderUrl = {
   orderRefundAccount: (ordersIdEncrypt: string) => `/orders/manages/${ordersIdEncrypt}/refund-account`,
   getDeliveryTracking: '/orders/ships/tracking',
   buyConfirmFinish: '/orders/ships/change-status/finish',
+  createOrder: '/shops/orders',
 };
 
 export const MyPageUrl = {
@@ -112,4 +115,22 @@ export const FavoritesUrl = {
   postFavoriteStoreAlert: (companyStoreId: number) => `/favorites/stores/${companyStoreId}/alert`,
   deleteFavoriteStoreAlert: (favoriteStoreAlertIdEncrypt: string) =>
     `/favorites/stores/alerts/${favoriteStoreAlertIdEncrypt}`,
+};
+
+export const GoodsQnasUrl = {
+  getGoodsQnaList: () => `/goods/pages/qna-list`,
+  getGoodsQnas: (goodsId: string) => `/goods/${goodsId}/qnas`,
+  // 상품 문의 등록
+  postGoodsQnas: (goodsId: number) => `/goods/${goodsId}/qnas`,
+  // 나의 상품 문의 조회, 수정, 삭제
+  getGoodsQnasMe: `/goods/qnas/me`,
+  putGoodsQnasUpdate: (goodsQnaIdEncrypt: string) => `goods/qnas/${goodsQnaIdEncrypt}`,
+  deleteGoodsQnas: (goodsQnaIdEncrypt: string) => `/goods/qnas/${goodsQnaIdEncrypt}`,
+};
+
+export const ReportUrl = {
+  getReports: (bbsTargetEncryptId: string) => `/goods/reports/bbs/${bbsTargetEncryptId}`,
+  postReports: (bbsTargetEncryptId: string) => `/goods/reports/bbs/${bbsTargetEncryptId}`,
+  getGoodsReport: (goodsId: string) => `/goods/reports/${goodsId}`,
+  postGoodsReports: (goodsId: string) => `/goods/reports/${goodsId}`,
 };

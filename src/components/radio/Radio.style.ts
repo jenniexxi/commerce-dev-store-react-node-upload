@@ -1,4 +1,6 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
+
+import { fonts } from '@styles/theme';
 
 import R from '@utils/resourceMapper';
 
@@ -24,12 +26,20 @@ export const RadioInput = styled.input`
     background-image: url(${R.svg.icoRadioFillOn});
   }
   & + label {
-    margin-left: 8px;
+    margin-left: 4px;
   }
 `;
 
-export const RadioLabel = styled.label`
-  ${({ theme }) => theme.fonts.caption1_normal}
-  line-height: 1;
+export const RadioLabel = styled.label<{ $fontType: keyof typeof fonts; $selected: boolean }>`
+  ${({ $fontType }) => fonts[$fontType]};
+
   vertical-align: middle;
+  ${({ $selected, theme }) =>
+    $selected
+      ? css`
+          color: ${theme.colors.text3};
+        `
+      : css`
+          color: ${theme.colors.text4};
+        `}
 `;

@@ -81,6 +81,15 @@ const MAXIMUM_MILEAGE_TYPES = {
 
 export type MaximumMileageType = (typeof MAXIMUM_MILEAGE_TYPES)[keyof typeof MAXIMUM_MILEAGE_TYPES];
 
+export const MILEAGE_UNIT = {
+  MILEAGE_USE_UNIT_ONE: 'MILEAGE.USE_UNIT.ONE',
+  MILEAGE_USE_UNIT_TENS: 'MILEAGE.USE_UNIT.TENS',
+  MILEAGE_USE_UNIT_HUNDREDS: 'MILEAGE.USE_UNIT.HUNDREDS',
+};
+
+export type MileageUnitCode = (typeof MILEAGE_UNIT)[keyof typeof MILEAGE_UNIT];
+
+
 // 배송요청사항 Enum 목록
 // ORDER.SHIPPING_REQUEST.CALL_BEFORE_DELIVERY: 배송 전에 미리 연락 바랍니다.
 // ORDER.SHIPPING_REQUEST.FRONT_DOOR: 문 앞에 놓아주세요.

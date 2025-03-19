@@ -15,6 +15,9 @@ type Props = {
   leftDisabled?: boolean;
   rightDisabled?: boolean;
   alignButton?: 'column' | 'row';
+  leftBtnProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  rightBtnProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  className?: string;
 };
 
 export type TwoButtonProps = Props;
@@ -33,6 +36,9 @@ const TwoButton = ({
   leftDisabled = false,
   rightDisabled = false,
   alignButton = 'row',
+  leftBtnProps = {},
+  rightBtnProps = {},
+  className,
 }: Props) => {
   let leftStyle;
   if (alignButton === 'column') {
@@ -43,7 +49,10 @@ const TwoButton = ({
     leftStyle = { flex: leftSize, marginRight: btnGap };
   }
   return (
-    <S.TwoButtonContainer $direction={alignButton}>
+    <S.TwoButtonContainer
+      $direction={alignButton}
+      className={className}
+    >
       <div style={leftStyle}>
         <S.Button
           disabled={leftDisabled}
@@ -52,6 +61,7 @@ const TwoButton = ({
           $width='100%'
           $align='center'
           onClick={leftonClick}
+          {...leftBtnProps}
         >
           {leftTitle}
         </S.Button>
@@ -64,6 +74,7 @@ const TwoButton = ({
           $width='100%'
           $align='center'
           onClick={rightonClick}
+          {...rightBtnProps}
         >
           {rightTitle}
         </S.Button>

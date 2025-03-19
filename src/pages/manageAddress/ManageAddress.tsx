@@ -39,6 +39,8 @@ const ManageAddress = ({}: Props) => {
   }: {
     state: {
       changeDeliveryRequest: boolean;
+      isExist: boolean;
+      isExchange: boolean;
     };
   } = useLocation();
 
@@ -132,13 +134,25 @@ const ManageAddress = ({}: Props) => {
       )}
 
       {sortedAddresses?.length === 0 ? (
-        <></>
+        <S.NonContsWrapper>
+          <S.TopContsSec>
+            <SvgIcon
+              name={R.svg.icoExclamationCircleFill}
+              width={80}
+              height={80}
+              tintColor={colors.status_disabled}
+            />
+            <T.Headline2B $mt={8}>등록된 배송지가 없습니다.</T.Headline2B>
+          </S.TopContsSec>
+        </S.NonContsWrapper>
       ) : (
         <S.AddrListWrap>
           {sortedAddresses?.map((item) => (
             <AddressItem
               item={item}
               refetch={refetch}
+              isExist={state?.isExist}
+              isExchange={state?.isExchange}
             />
           ))}
         </S.AddrListWrap>

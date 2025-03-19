@@ -3,6 +3,8 @@ import { Button, TwoButton } from '@components';
 
 import { TwoButtonProps } from '@components/button/TwoButton';
 
+import { colors } from '@styles/theme';
+
 import Modal, { ModalProps } from './Modal';
 import * as S from './Modal.style';
 
@@ -29,7 +31,7 @@ const TextModal = ({ title, content, buttonType = 'single', onHide, ...props }: 
       <S.TextModalWrapper>
         <T.Headline2B>{title}</T.Headline2B>
 
-        <p>{content}</p>
+        <T.Body1_Normal $color={colors.text4}>{content}</T.Body1_Normal>
         {buttonType === 'single' ? (
           <Button
             btnType={props.rightType}

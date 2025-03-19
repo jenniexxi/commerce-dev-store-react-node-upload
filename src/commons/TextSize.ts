@@ -9,7 +9,14 @@ const FontWeight = {
   bold: 700,
 } as const;
 
-const DefaultText = styled.p<{ $color?: string; $ml?: number; $mr?: number; $mt?: number; $mb?: number }>`
+const DefaultText = styled.p<{
+  $color?: string;
+  $ml?: number;
+  $mr?: number;
+  $mt?: number;
+  $mb?: number;
+  $align?: 'center' | 'left' | 'right';
+}>`
   color: ${({ theme, $color }) => ($color ? $color : theme.colors.text3)};
   ${({ $ml }) =>
     $ml &&
@@ -31,6 +38,23 @@ const DefaultText = styled.p<{ $color?: string; $ml?: number; $mr?: number; $mt?
     css`
       margin-bottom: ${pxToRem($mb)};
     `}
+    ${({ $align }) => {
+    switch ($align) {
+      case 'center':
+        return css`
+          text-align: center;
+        `;
+      case 'right':
+        return css`
+          text-align: right;
+        `;
+      case 'left':
+      default:
+        return css`
+          text-align: left;
+        `;
+    }
+  }}
 `;
 
 const Display1SB = styled(DefaultText)`

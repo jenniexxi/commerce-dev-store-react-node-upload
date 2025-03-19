@@ -152,3 +152,47 @@ export const MinicartErrorCode = {
   NotGoodsSaleStatus: AVAILABLE_INFO_FAIL_CODES.NOT_GOODS_SALE_STATUS, // 상품 판매 불가 상태
   NonBuyerBuyMaxBuyCntCondition: AVAILABLE_INFO_FAIL_CODES.NON_BUYER_BUY_MAX_BUY_CNT_CONDITION, // 비회원 1인 최대 구매 수량 조건 상품 이용불가
 } as const;
+
+/**
+ * 리뷰/상품 문의 글 신고 팝업 코드 값
+ */
+export const ReportsReason = {
+  /** 관련없는 이미지 */
+  IrrelevanttImage: 'REPORT.TYPE.IRRELEVANT_IMAGE',
+  /** 욕설/비방 */
+  Abusive: 'REPORT.TYPE.ABUSIVE_LANGUAGE',
+  /** 개인정보유출 */
+  PersonalLeak: 'REPORT.TYPE.PERSONAL_INFO_LEAK',
+  /** 관련없는 내용 */
+  IrrelevanttContent: 'REPORT.TYPE.IRRELEVANT_CONTENT',
+  /** 광고/홍보글 */
+  AdPromotion: 'REPORT.TYPE.ADVERTISING_PROMOTION',
+  /** 게시글 도배 */
+  Flooding: 'REPORT.TYPE.FLOODING',
+  /** 선정적인 내용 */
+  SexuallyExplicitContent: 'REPORT.TYPE.SEXUALLY_EXPLICIT_CONTENT',
+  /** 기타 (직접입력) */
+  Other: 'REPORT.TYPE.OTHER',
+} as const;
+
+export type ReportsReasonKey = (typeof ReportsReason)[keyof typeof ReportsReason];
+
+/**
+ * 상품 정보 글 신고 팝업 코드 값
+ */
+export const GoodsReportsReason = {
+  /** 상품 가격 상이 */
+  PRICE_DISCREPANCY: 'REPORT.GOODS_REPORT_TYPE.PRICE_DISCREPANCY',
+  /** 구성품/상품정보고시정보/스펙 등 상이 */
+  PRODUCT_INFO_MISMATCH: 'REPORT.GOODS_REPORT_TYPE.PRODUCT_INFO_MISMATCH',
+  /** 자극적/부적절한 이미지 노출 */
+  INAPPROPRIATE_IMAGE: 'REPORT.GOODS_REPORT_TYPE.INAPPROPRIATE_IMAGE',
+  /** 직거래 유도글 게시 */
+  DIRECT_TRANSACTION_INDUCEMENT: 'REPORT.GOODS_REPORT_TYPE.DIRECT_TRANSACTION_INDUCEMENT',
+  /** 상품 제목 위반 */
+  TITLE_VIOLATION: 'REPORT.GOODS_REPORT_TYPE.TITLE_VIOLATION',
+  /** 기타 (직접입력) */
+  OTHER: 'REPORT.GOODS_REPORT_TYPE.OTHER',
+} as const;
+
+export type GoodsReportsReasonKey = (typeof GoodsReportsReason)[keyof typeof GoodsReportsReason];

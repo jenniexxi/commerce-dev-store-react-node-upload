@@ -14,7 +14,7 @@ import * as S from './ClaimFeatures.style';
 type ClaimReasonProps = {
   claimReasonEnum?: Code<string>;
   claimReason: string;
-  reasonList: { label: string; value: Code<string> }[];
+  reasonList: { label: string; userResponsibility?: boolean; value: Code<string> }[];
   onChangeClaimReason: (value: Code<string>) => void;
   setClaimReason: (value: string) => void;
   title: string;
@@ -44,11 +44,8 @@ const ClaimReason = ({
   errorMessageClaimReason,
   errorMessageReason,
 }: ClaimReasonProps) => {
-  const handleRadioChange = (value: string) => {
-    const selectedReason = reasonList.find((reason) => reason.value.code === value);
-    if (selectedReason) {
-      onChangeClaimReason(selectedReason.value);
-    }
+  const handleRadioChange = (value: Code<string>) => {
+    onChangeClaimReason(value);
   };
 
   return (
@@ -56,19 +53,57 @@ const ClaimReason = ({
       <S.OhDetailTitleTy1>
         <h2>{title}사유</h2>
       </S.OhDetailTitleTy1>
-      <S.ReasonBox>
-        {reasonList.map((reason) => (
-          <Radio
-            key={reason.value.code}
-            id={reason.value.code}
-            value={reason.value.code}
-            label={reason.label}
-            name='claimReason'
-            selectedValue={claimReasonEnum?.code || ''}
-            onChange={handleRadioChange}
-          />
-        ))}
-      </S.ReasonBox>
+      {title === '취소' && (
+        <S.ReasonBox>
+          {reasonList.map((reason) => (
+            <Radio
+              key={reason.value.code}
+              id={reason.value.code}
+              value={reason.value.code}
+              label={reason.label}
+              name='claimReason'
+              selectedValue={claimReasonEnum?.code || ''}
+              onChange={() => handleRadioChange(reason.value)}
+            />
+          ))}
+        </S.ReasonBox>
+      )}
+      {title !== '취소' && (
+        <>
+          <T.Body1_NormalB>구매자 배송비 부담</T.Body1_NormalB>
+          <S.ReasonBox>
+            {reasonList
+              .filter((item) => item.userResponsibility === true)
+              .map((reason) => (
+                <Radio
+                  key={reason.value.code}
+                  id={reason.value.code}
+                  value={reason.value.code}
+                  label={reason.label}
+                  name='claimReason'
+                  selectedValue={claimReasonEnum?.code || ''}
+                  onChange={() => handleRadioChange(reason.value)}
+                />
+              ))}
+          </S.ReasonBox>
+          <T.Body1_NormalB $mt={8}>판매자 배송비 부담</T.Body1_NormalB>
+          <S.ReasonBox>
+            {reasonList
+              .filter((item) => item.userResponsibility === false)
+              .map((reason) => (
+                <Radio
+                  key={reason.value.code}
+                  id={reason.value.code}
+                  value={reason.value.code}
+                  label={reason.label}
+                  name='claimReason'
+                  selectedValue={claimReasonEnum?.code || ''}
+                  onChange={() => handleRadioChange(reason.value)}
+                />
+              ))}
+          </S.ReasonBox>
+        </>
+      )}
       {errorMessageClaimReason && (
         <T.Caption1_Normal $color={colors.status_danger}>{errorMessageClaimReason}</T.Caption1_Normal>
       )}
@@ -103,8 +138,11 @@ const ClaimReason = ({
                 align='center'
                 title={
                   <>
-                    사진 등록하기{' '}
-                    <T.Body1_NormalB $color={images?.length === 0 ? colors.text5 : colors.secondary1}>
+                    사진 등록하기
+                    <T.Body1_NormalB
+                      $ml={4}
+                      $color={images?.length === 0 ? colors.text5 : colors.secondary1}
+                    >
                       {images?.length}
                     </T.Body1_NormalB>
                   </>
@@ -116,8 +154,11 @@ const ClaimReason = ({
                 align='center'
                 title={
                   <>
-                    영상 등록하기{' '}
-                    <T.Body1_NormalB $color={videos?.length === 0 ? colors.text5 : colors.secondary1}>
+                    영상 등록하기
+                    <T.Body1_NormalB
+                      $ml={4}
+                      $color={videos?.length === 0 ? colors.text5 : colors.secondary1}
+                    >
                       {videos?.length}
                     </T.Body1_NormalB>
                   </>
@@ -132,7 +173,7 @@ const ClaimReason = ({
               <S.PictureInput
                 id='file-video'
                 type='file'
-                accept='.png, .jpg, .jpeg'
+                accept='.mp4'
                 onChange={handleImageUpload}
               />
             </S.PictureWrapper>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -53,6 +53,8 @@ const CancelOrder = ({
   useHeader('상품 취소신청', { showHeader: true, showRightButton: false });
   const navigate = useNavigate();
 
+  const claimReasonRef = useRef<HTMLDivElement>(null);
+
   const [claimReasonEnum, setClaimReasonEnum] = useState<Code<string>>();
   const [cancelReason, setCancelReason] = useState('');
   const [shippingList, setShippingList] = useState<CustomShippingList[]>([]);
@@ -100,6 +102,16 @@ const CancelOrder = ({
   }, [cancelOrderInfo]);
 
   useEffect(() => {
+    if (errorMessageClaimReason || errorMessageReason) {
+      // 스크롤을 ClaimReason 컴포넌트로 이동
+      claimReasonRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [errorMessageClaimReason, errorMessageReason]);
+
+  useEffect(() => {
     const allChecked = getAllCheckboxCheckedState(shippingList);
     setIsAllCheckedBox(allChecked);
 
@@ -140,15 +152,6 @@ const CancelOrder = ({
     if (!claimReasonEnum || cancelReason === '') {
       return;
     }
-    // if (!claimReasonEnum) {
-    //   showModal.text(messages.Alert322);
-    //   return;
-    // }
-
-    // if (cancelReason === '') {
-    //   showModal.text(messages.Alert322);
-    //   return;
-    // }
 
     const body: ClaimCancelRequestBody = {
       ordersIdEncrypt,
@@ -166,7 +169,7 @@ const CancelOrder = ({
 
   const handleReasonApply = () => {
     if (!claimReasonEnum) {
-      setErrorMessageClaimReason('취소 사유를 선택해 주세요.');
+      setErrorMessageClaimReason('취소사유를 선택해 주세요.');
       return;
     }
 
@@ -174,12 +177,12 @@ const CancelOrder = ({
       case CLAIM_CANCEL_REQUEST_REASON.CANCEL_SIMPLE_CHANGE_MIND:
       case CLAIM_CANCEL_REQUEST_REASON.CANCEL_ORDER_MISTAKE:
       case CLAIM_CANCEL_REQUEST_REASON.CANCEL_CHANGE_OPTION:
+      default:
         break;
       case CLAIM_CANCEL_REQUEST_REASON.CANCEL_DELIVERY_DELAY:
       case CLAIM_CANCEL_REQUEST_REASON.CANCEL_GOODS_SOLD:
-      default:
         if (cancelReason === '') {
-          setErrorMessageReason('취소 사유를 선택해 주세요.');
+          setErrorMessageReason('취소사유를 입력해 주세요.');
           return;
         }
     }
@@ -198,45 +201,37 @@ const CancelOrder = ({
       case CLAIM_CANCEL_REQUEST_REASON.CANCEL_SIMPLE_CHANGE_MIND:
       case CLAIM_CANCEL_REQUEST_REASON.CANCEL_ORDER_MISTAKE:
       case CLAIM_CANCEL_REQUEST_REASON.CANCEL_CHANGE_OPTION:
+      default:
         return '취소사유를 입력해 주세요. (선택)';
       case CLAIM_CANCEL_REQUEST_REASON.CANCEL_DELIVERY_DELAY:
       case CLAIM_CANCEL_REQUEST_REASON.CANCEL_GOODS_SOLD:
-      default:
         return '취소사유를 입력해 주세요. (필수)';
     }
   };
   const reasonList = [
     {
       label: '단순 변심',
-      value: { code: CLAIM_CANCEL_REQUEST_REASON.CANCEL_SIMPLE_CHANGE_MIND.toString(), codeName: '단순 변심' },
+      value: { code: CLAIM_CANCEL_REQUEST_REASON.CANCEL_SIMPLE_CHANGE_MIND, codeName: '단순 변심' },
     },
     {
       label: '주문 실수',
-      value: { code: CLAIM_CANCEL_REQUEST_REASON.CANCEL_ORDER_MISTAKE.toString(), codeName: '주문 실수' },
+      value: { code: CLAIM_CANCEL_REQUEST_REASON.CANCEL_ORDER_MISTAKE, codeName: '주문 실수' },
     },
     {
       label: '옵션 변경',
-      value: { code: CLAIM_CANCEL_REQUEST_REASON.CANCEL_CHANGE_OPTION.toString(), codeName: '옵션 변경' },
+      value: { code: CLAIM_CANCEL_REQUEST_REASON.CANCEL_CHANGE_OPTION, codeName: '옵션 변경' },
     },
     {
       label: '배송 지연',
-      value: { code: CLAIM_CANCEL_REQUEST_REASON.CANCEL_DELIVERY_DELAY.toString(), codeName: '배송 지연' },
+      value: { code: CLAIM_CANCEL_REQUEST_REASON.CANCEL_DELIVERY_DELAY, codeName: '배송 지연' },
     },
     {
       label: '상품 품절',
-      value: { code: CLAIM_CANCEL_REQUEST_REASON.CANCEL_GOODS_SOLD.toString(), codeName: '상품 품절' },
+      value: { code: CLAIM_CANCEL_REQUEST_REASON.CANCEL_GOODS_SOLD, codeName: '상품 품절' },
     },
   ];
 
   if (cancelOrderInfo?.success === false) return <></>;
-
-  const handleReason = () => {
-    if (!claimReasonEnum) {
-      setErrorMessageClaimReason('취소 사유를 선택해 주세요.');
-      return;
-    }
-    setErrorMessageClaimReason('');
-  };
 
   return (
     <S.CancelOrderWrap>
@@ -282,7 +277,7 @@ const CancelOrder = ({
           })}
         </S.GoodsListPart>
       </S.OhDetailSecGoods>
-      <S.OhDetailSecReason>
+      <S.OhDetailSecReason ref={claimReasonRef}>
         <ClaimReason
           claimReasonEnum={claimReasonEnum}
           reasonList={reasonList}

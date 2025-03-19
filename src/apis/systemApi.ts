@@ -2,7 +2,10 @@ import {
   AddPaymentMethodCode,
   BankCode,
   BasicPaymentMethodCode,
+  CashReceiptTypeCode,
+  DeviceTypeCode,
   EasyPaymentMethodCode,
+  IdentityTypeCode,
   PaymentMethodCode,
   PaymentTypeCode,
   PgServiceTypeCode,
@@ -64,7 +67,7 @@ type PaymentRequireInfoResp = APIResponse & {
   data: PaymentRequireInfo;
 };
 
-type PaymentRequestBody = {
+export type PaymentRequestBody = {
   deviceTypeEnum: string;
   paymentMethodEnum: string;
   returnUrl?: string;
@@ -72,6 +75,10 @@ type PaymentRequestBody = {
   bankEnum?: Code<BankCode>;
   bankAccountNumber?: string;
   bankAccountHolder?: string;
+  cashReceiptYn?: boolean;
+  purposeEnum?: Code<CashReceiptTypeCode>;
+  identityTypeEnum?: Code<IdentityTypeCode>;
+  identity?: string;
   paymentTypeEnum: Code<PaymentTypeCode>;
 };
 
@@ -115,6 +122,18 @@ export type PaymentResult = {
 type PaymentResultResp = APIResponse & {
   data: PaymentResult;
 };
+
+export type CheckAccountReq = {
+  bankEnum: Code<BankCode>;
+  bankAccountNumber: string;
+  bankAccountHolder: string;
+};
+
+export type CheckFreePaymentReq = {
+  paymentGatewayIdEncrypt: string;
+  deviceTypeEnum: DeviceTypeCode;
+};
+
 const SystemAPI = {
   getBuyerInfo: (): Promise<PaymentBuyerInfoResp> => {
     return axiosInstance
@@ -146,6 +165,24 @@ const SystemAPI = {
   postPaymentResult: (body: PaymentResultBody): Promise<PaymentResultResp> => {
     return axiosInstance
       .post(SystemUrl.postPaymentResult, body)
+      .then((resp) => resp.data)
+      .catch((e) => {
+        console.error('API Error:', e);
+        throw e;
+      });
+  },
+  postCheckAccount: (body: CheckAccountReq): Promise<APIResponse> => {
+    return axiosInstance
+      .post(SystemUrl.postCheckAccount, body)
+      .then((resp) => resp.data)
+      .catch((e) => {
+        console.error('API Error:', e);
+        throw e;
+      });
+  },
+  postCheckFreePaymentResult: (body: any): Promise<void> => {
+    return axiosInstance
+      .post(SystemUrl.postCheckFreePaymentResult, body)
       .then((resp) => resp.data)
       .catch((e) => {
         console.error('API Error:', e);

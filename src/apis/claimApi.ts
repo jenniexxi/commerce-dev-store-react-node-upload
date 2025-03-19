@@ -14,22 +14,14 @@ import { APIResponse, axiosInstance } from './api';
 import { Code, Price } from './apiCommonType';
 import { ClaimUrl } from './urls';
 
-export type collectAddress = {
+export type ShippingAddress = {
   name: string;
   contactNumber: string;
   zipCode: string;
   address: string;
   addressDetail: string;
   shippingMessage: string;
-};
-
-export type reShippingAddress = {
-  name: string;
-  contactNumber: string;
-  zipCode: string;
-  address: string;
-  addressDetail: string;
-  shippingMessage: string;
+  shippingOrderAddressIdEncrypt?: string;
 };
 export type ClaimOrderDetail = {
   order: {
@@ -67,8 +59,8 @@ export type ClaimOrderDetail = {
     addChangeShippingPrice: Price;
     changePaymentShippingPrice: Price;
   };
-  collectAddress: collectAddress;
-  reShippingAddress: reShippingAddress;
+  collectAddress: ShippingAddress;
+  reShippingAddress: ShippingAddress;
   payment: {
     paymentMethodEnum: Code<PaymentMethodCode>;
     paymentStatusEnum: Code<PaymentStatusCode>;
@@ -244,15 +236,7 @@ export type CancelRefundInfoInquiryResp = APIResponse & {
 
 export type ClaimExchangeInfoViewResp = APIResponse & {
   data: ClaimInfoViewRespCommon & {
-    shippingAddress: {
-      name: string;
-      contactNumber: string;
-      zipCode: string;
-      address: string;
-      addressDetail: string;
-      shippingMessage: string;
-      shippingOrderAddressIdEncrypt: string;
-    };
+    shippingAddress: ShippingAddress;
   };
 };
 
@@ -268,8 +252,8 @@ export type ExchangeRefundInfoInquiryResp = APIResponse & {
 };
 
 export type ClaimExchangeRequestBody = ClaimCancelRequestBody & {
-  collectAddress: collectAddress;
-  reShippingAddress?: reShippingAddress;
+  collectAddress: ShippingAddress;
+  reShippingAddress?: ShippingAddress;
 };
 
 export type ConfirmIsExchangeRequestBody = {

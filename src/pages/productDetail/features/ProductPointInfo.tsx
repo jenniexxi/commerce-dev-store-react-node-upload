@@ -2,8 +2,11 @@ import { useState } from 'react';
 
 import { T } from '@commons';
 import { Button, Modal } from '@components';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
+import { CouponTypeCodes } from '@type';
 
+import Coupon from '@components/coupon/Coupon';
+import { addToast } from '@components/toast/Toast';
 import NonModalTooltip from '@components/tooltip/NonModalTooltip';
 
 import { colors } from '@styles/theme';
@@ -12,25 +15,31 @@ import { showMileageText } from '@utils/display';
 
 import { DetailsContent, PriceContent } from '@apis/goodsApi';
 import { MyPageMain } from '@apis/mypageApi';
-import promotionApi from '@apis/promotionApi';
+import promotionApi, { CouponListResp } from '@apis/promotionApi';
 
-import CouponModal from './CouponModal';
 import * as S from './_ProductDetail.style';
 
 type Props = {
   goodsInfo?: DetailsContent;
   goodsPriceInfo?: PriceContent;
   goodsId: number;
+  couponData?: CouponListResp;
   myPageInfo?: MyPageMain;
+  refetch: () => void;
 };
-const ProductPointInfo = ({ goodsInfo, goodsId, goodsPriceInfo, myPageInfo }: Props) => {
+const ProductPointInfo = ({ goodsInfo, goodsId, goodsPriceInfo, couponData, myPageInfo, refetch }: Props) => {
   const [couponModal, setCouponModal] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
-  const [couponReceived, setCouponReceived] = useState(false);
 
-  const { data: couponData, refetch } = useQuery({
-    queryKey: ['getCoupon', goodsId],
-    queryFn: () => promotionApi.getGoodsCoupon(goodsId),
+  const { mutate: downloadCoupon } = useMutation({
+    mutationFn: (code: string) => promotionApi.postDownloadCoupon(code, { goodsId }),
+    onSuccess: (data) => {
+      if (data.success) {
+        refetch();
+      } else {
+        addToast(data.error.message, 1500, 76);
+      }
+    },
   });
 
   if (!goodsInfo || !goodsPriceInfo) return;
@@ -47,10 +56,31 @@ const ProductPointInfo = ({ goodsInfo, goodsId, goodsPriceInfo, myPageInfo }: Pr
     setIsOpen((prev) => !prev);
   };
 
-  // 쿠폰 받기 완료 시 호출될 함수
-  const handleCouponReceive = () => {
-    setCouponReceived(true);
+  const downloadAllCoupon = async () => {
+    const codeList = couponData?.data
+      ?.filter((item) => !item.downloadYn)
+      .flatMap((item) => {
+        return item.code;
+      });
+
+    if (!codeList?.length) return;
+
+    try {
+      for (const code of codeList) {
+        await downloadCoupon(code);
+      }
+    } catch (error) {
+      // 에러 처리
+    } finally {
+      refetch();
+    }
   };
+  const isDownloadAll = couponData?.data.every((item) => {
+    return item.downloadYn;
+  });
+
+  const storeCoupon =
+    couponData?.data.filter((item) => item.typeEnum.code === CouponTypeCodes.Store && !item.downloadYn) || [];
 
   return (
     <S.MyBenefitView>
@@ -58,7 +88,7 @@ const ProductPointInfo = ({ goodsInfo, goodsId, goodsPriceInfo, myPageInfo }: Pr
         <S.UserInfo>
           <S.UserName>{myPageInfo?.buyerGroup?.name}님을 위한 혜택</S.UserName>
           {goodsInfo.couponExistYn &&
-            (couponReceived ? (
+            (isDownloadAll ? (
               <Button
                 title='받은쿠폰'
                 btnType='tertiary'
@@ -70,10 +100,7 @@ const ProductPointInfo = ({ goodsInfo, goodsId, goodsPriceInfo, myPageInfo }: Pr
                 title='쿠폰받기'
                 btnType='highlight'
                 size='xsm'
-                onClick={() => {
-                  handleCouponReceive();
-                  showCouponModal();
-                }}
+                onClick={showCouponModal}
               />
             ))}
         </S.UserInfo>
@@ -108,7 +135,7 @@ const ProductPointInfo = ({ goodsInfo, goodsId, goodsPriceInfo, myPageInfo }: Pr
               <span className='desc'>{showMileageText(goodsPriceInfo.goodsExpectMileage)}</span>
             </S.RowViewBetween>
           </S.PointSummaryViewItem>
-          <S.AccoDetaiView isOpen={isOpen}>
+          <S.AccoDetaiView $isOpen={isOpen}>
             <S.PointSummaryViewItem>
               <S.ToolTipView>
                 <p className='tipTitle'>라운드 등급 적립</p>
@@ -216,18 +243,60 @@ const ProductPointInfo = ({ goodsInfo, goodsId, goodsPriceInfo, myPageInfo }: Pr
           </button>
         </S.AccoDetailBtn>
       </S.MyBenefitCont>
+
       {couponModal && (
         <Modal
           onHide={hideCouponModal}
           type='bottomSheet'
           bottomTitle='사용 가능한 쿠폰'
+          fixedArea={
+            <S.BottomButton>
+              <Button
+                width='100%'
+                align='center'
+                title='전체 다운로드'
+                disabled={isDownloadAll}
+                onClick={downloadAllCoupon}
+              />
+            </S.BottomButton>
+          }
         >
-          <CouponModal
-            onHide={hideCouponModal}
-            goodsId={goodsId}
-            couponData={couponData?.data || []}
-            refetch={refetch}
-          />
+          <S.CouponModalContainer>
+            {couponData?.data
+              .filter((item) => item.typeEnum.code !== CouponTypeCodes.Store || item.downloadYn)
+              .map((item) => {
+                return (
+                  <Coupon
+                    goodsId={goodsId}
+                    info={item}
+                    type={item.typeEnum.code}
+                    key={item.couponId}
+                    refetch={refetch}
+                  />
+                );
+              })}
+            {storeCoupon.length > 0 && (
+              <>
+                <T.Body1_NormalB
+                  $mt={32}
+                  $mb={16}
+                >
+                  스토어명에서 드리는 스토어 쿠폰
+                </T.Body1_NormalB>
+                {storeCoupon.map((item) => {
+                  return (
+                    <Coupon
+                      goodsId={goodsId}
+                      info={item}
+                      type={item.typeEnum.code}
+                      key={item.couponId}
+                      refetch={refetch}
+                    />
+                  );
+                })}
+              </>
+            )}
+          </S.CouponModalContainer>
         </Modal>
       )}
     </S.MyBenefitView>

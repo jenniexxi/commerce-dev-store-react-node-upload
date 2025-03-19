@@ -1,7 +1,6 @@
 import { T } from '@commons';
 
 import IconButton from '@components/button/IconButton';
-import ToggleIconButton from '@components/toggleIconButton/ToggleIconButton';
 import NonModalTooltip from '@components/tooltip/NonModalTooltip';
 
 import { colors } from '@styles/theme';

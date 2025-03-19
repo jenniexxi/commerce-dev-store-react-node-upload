@@ -46,7 +46,7 @@ export const currencyCodeToCurrency = (code?: string): string => {
   }
 };
 
-export const showShippingPriceText = (priceItem: Price): string => {
+export const showShippingPriceText = (priceItem?: Price): string => {
   if (!priceItem || !priceItem.number || !priceItem.currencyCode) {
     return '무료배송';
   }

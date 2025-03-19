@@ -7,38 +7,18 @@ import { T } from '@commons';
 import { Input, Modal, Selector } from '@components';
 import { Button } from '@components';
 import { useQuery } from '@tanstack/react-query';
-
-import { type Option } from '@components/selector/Selector';
+import { DELIVERY_REQUEST } from '@type';
 
 import { useDeliveryStore } from '@stores/useDeliveryStore';
+import { useOrderStore } from '@stores/useOrderStore';
 
 import { PAGE_WITHOUT_FOOTER_ROUTES } from '@router/Routes';
 
 import { colors } from '@styles/theme';
 
-import buyersApi, { DeliveryAddress, Encrypt, MyAddressCountResp, MyAddressResp } from '@apis/buyersApi';
+import buyersApi, { DeliveryAddress, Encrypt } from '@apis/buyersApi';
 
 import * as S from './_Order.style';
-
-export const DELIVERY_REQUEST = [
-  {
-    label: '문 앞에 놓아주세요.',
-    value: { code: 'ORDER.SHIPPING_REQUEST.FRONT_DOOR', codeName: '문 앞에 놓아주세요.' },
-  },
-  {
-    label: '배송 전에 미리 연락 바랍니다.',
-    value: { code: 'ORDER.SHIPPING_REQUEST.CALL_BEFORE_DELIVERY', codeName: '배송 전에 미리 연락 바랍니다.' },
-  },
-  {
-    label: '부재 시 경비실에 맡겨 주세요.',
-    value: { code: 'ORDER.SHIPPING_REQUEST.SECURITY_OFFICE', codeName: '부재 시 경비실에 맡겨 주세요.' },
-  },
-  {
-    label: '부재 시 전화 주시거나 문자 남겨주세요.',
-    value: { code: 'ORDER.SHIPPING_REQUEST.CALL_ABSENCE', codeName: '부재 시 전화 주시거나 문자 남겨주세요.' },
-  },
-  { label: '직접 입력', value: { code: 'ORDER.SHIPPING_REQUEST.DIRECT', codeName: '직접 입력' } },
-];
 
 type Props = {};
 
@@ -49,11 +29,10 @@ const DelivieryInfo = ({}: Props) => {
     setDeliveryRequestReason,
     deliveryRequest,
     setDeliveryRequest,
-
     selectedAddr,
     setSelectedAddr,
   } = useDeliveryStore();
-
+  const { setAddress } = useOrderStore();
   // 쿼리
   const { data: addressCount } = useQuery({
     queryKey: ['getMyAddressCount'],
@@ -67,10 +46,28 @@ const DelivieryInfo = ({}: Props) => {
   });
 
   useEffect(() => {
-    setSelectedAddr(
-      addressData?.data?.filter((address: DeliveryAddress & Encrypt) => address.defaultYn === true)[0] ?? undefined,
-    );
+    if (!selectedAddr) {
+      setSelectedAddr(
+        addressData?.data?.filter((address: DeliveryAddress & Encrypt) => address.defaultYn === true)[0] ?? undefined,
+      );
+    }
   }, [addressData]);
+
+  useEffect(() => {
+    if (selectedAddr) {
+      setAddress({
+        name: selectedAddr.receiverName,
+        contactNumber: selectedAddr.receiverCellPhone,
+        zipCode: selectedAddr.zipCode,
+        address: selectedAddr.receiverAddress,
+        addressDetail: selectedAddr.receiverAddressDetail,
+        shippingMessage:
+          deliveryRequest?.code === 'ORDER.SHIPPING_REQUEST.DIRECT' ? deliveryRequestReason : deliveryRequest?.codeName,
+        shippingName: selectedAddr.name,
+        basicYn: selectedAddr.defaultYn,
+      });
+    }
+  }, [selectedAddr]);
 
   const mangeAddress = () => {
     navigate(PAGE_WITHOUT_FOOTER_ROUTES.MANAGE_ADDRESS.path);
@@ -123,6 +120,7 @@ const DelivieryInfo = ({}: Props) => {
             defaultValue={deliveryRequest}
             options={DELIVERY_REQUEST}
             onChange={setDeliveryRequest}
+            isBottomPopup={true}
           />
           {deliveryRequest?.code === 'ORDER.SHIPPING_REQUEST.DIRECT' && (
             <S.DirectInputWrapper>

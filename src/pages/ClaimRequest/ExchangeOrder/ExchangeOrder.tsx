@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
+import { T } from '@commons';
 import { Checkbox, TwoButton } from '@components';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { AllOrderStates, CLAIM_EXCHANGE_REQUEST_REASON } from '@type';
@@ -10,9 +11,12 @@ import dayjs from 'dayjs';
 import { MobileNumber } from '@components/input/MobileInput';
 import { showModal } from '@components/modal/ModalManager';
 
+import { useDeliveryStore } from '@stores/useDeliveryStore';
+
 import { useHeader } from '@hooks/useHeader';
 
 import { Code } from '@apis/apiCommonType';
+import buyersApi, { DeliveryAddress, Encrypt } from '@apis/buyersApi';
 import claimApi, {
   ClaimExchangeRequestBody,
   ConfirmIsExchangeRequestBody,
@@ -20,6 +24,8 @@ import claimApi, {
   ExchangeRefundInfoInquiryResp,
 } from '@apis/claimApi';
 import messages from '@apis/message';
+
+import Separator from '@commons/Separator';
 
 import { CustomShippingList } from '../ClaimRequest';
 import * as S from '../ClaimRequest.style';
@@ -68,7 +74,7 @@ const ExchangeOrder = ({
   handleDeleteImage,
   handleDeleteVideo,
 }: Props) => {
-  useHeader('상품 교환신청', { showRightButton: false });
+  useHeader('상품 교환신청', { showHeader: true, showRightButton: false });
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [claimReasonEnum, setClaimReasonEnum] = useState<Code<string>>();
@@ -77,30 +83,30 @@ const ExchangeOrder = ({
   const [isAllCheckedBox, setIsAllCheckedBox] = useState(false);
   const [refundInfo, setRefundInfo] = useState<ExchangeRefundInfoInquiryResp>();
 
-  const [collectAddrInfo, setCollectAddrInfo] = useState<UserAddrInfo>({
-    name: '',
-    zipCode: '',
-    address: '',
-    detailAddress: '',
-    phonenumber: {
-      first: '',
-      second: '',
-      third: '',
-    },
-    deliveryRequestEnum: '',
+  const claimReasonRef = useRef<HTMLDivElement>(null);
+  const [errorMessageClaimReason, setErrorMessageClaimReason] = useState('');
+  const [errorMessageReason, setErrorMessageReason] = useState('');
+
+  const {
+    existingAddress,
+    setExistingAddress,
+    exchangeAddress,
+    setExchangeAddress,
+    exchangeRequest,
+    setExchangeRequest,
+    exchangeRequestReason,
+    setExchangeRequestReason,
+  } = useDeliveryStore();
+
+  const { data: addressCount } = useQuery({
+    queryKey: ['getMyAddressCount'],
+    queryFn: () => buyersApi.getMyAddressCount(),
   });
 
-  const [reShippingAddrInfo, setReShippingAddrInfo] = useState<UserAddrInfo>({
-    name: '',
-    zipCode: '',
-    address: '',
-    detailAddress: '',
-    phonenumber: {
-      first: '',
-      second: '',
-      third: '',
-    },
-    deliveryRequestEnum: { code: '', codeName: '' },
+  const { data: addressData } = useQuery({
+    queryKey: ['getMyAddresses'],
+    queryFn: () => buyersApi.getMyAddresses(),
+    enabled: addressCount && addressCount?.data !== 0,
   });
 
   const { data: exchangeOrderInfo } = useQuery({
@@ -121,8 +127,9 @@ const ExchangeOrder = ({
         if (refundInfo?.data?.addPaymentYn) {
           showModal.text(messages.Confirm40, {
             buttonType: 'multi',
-            // leftonClick: () => navigate(''), //추가결제 창 뜨면 pg 페이지로 이동
-            // handleExchangeApply();
+            rightonClick: () => {
+              // handleExchangeApply();
+            },
           });
         } else if (!refundInfo?.data?.addPaymentYn) {
           showModal.text(messages.Confirm40, {
@@ -177,22 +184,65 @@ const ExchangeOrder = ({
       setShippingList(
         createCustomShippingList(exchangeOrderInfo.data.shippingList, isCheckboxState, orderItemIdEncrypt || []),
       );
+      if (exchangeOrderInfo.data.shippingAddress) {
+        setExistingAddress({ ...exchangeOrderInfo.data.shippingAddress, shippingMessage: '' });
+      }
     }
   }, [exchangeOrderInfo]);
+
+  useEffect(() => {
+    const defaultAddress =
+      addressData?.data?.filter((address: DeliveryAddress & Encrypt) => address.defaultYn === true)[0] ?? undefined;
+
+    if (defaultAddress) {
+      setExchangeAddress({
+        name: defaultAddress.receiverName + '(' + defaultAddress.name + ')',
+        contactNumber: defaultAddress.receiverCellPhone,
+        zipCode: defaultAddress.zipCode,
+        address: defaultAddress.receiverAddress,
+        addressDetail: defaultAddress.receiverAddressDetail,
+        shippingMessage: '',
+        shippingOrderAddressIdEncrypt: defaultAddress.buyerAddressIdEncrypt,
+      });
+    }
+  }, [addressData]);
 
   useEffect(() => {
     const allChecked = getAllCheckboxCheckedState(shippingList);
     setIsAllCheckedBox(allChecked);
   }, [shippingList]);
 
+  useEffect(() => {
+    if (claimReasonEnum) {
+      setErrorMessageClaimReason('');
+    }
+  }, [claimReasonEnum]);
+
+  useEffect(() => {
+    if (exchangeReason) {
+      setErrorMessageReason('');
+    }
+  }, [exchangeReason]);
+
+  useEffect(() => {
+    if (errorMessageClaimReason || errorMessageReason) {
+      // 스크롤을 ClaimReason 컴포넌트로 이동
+      claimReasonRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [errorMessageClaimReason, errorMessageReason]);
+
   const getExchangeRefundInfo = () => {
+    if (!exchangeAddress || !existingAddress) return;
     const body: ExchangeRefundInfoInquiryRequestBody = {
       ordersIdEncrypt,
       orderShippingPriceIdEncrypt,
       orderItemList: getRefundOrderItemList(shippingList),
       claimReasonEnum: claimReasonEnum?.code!,
-      collectAddressZipCode: collectAddrInfo.zipCode,
-      reShippingAddressZipCode: reShippingAddrInfo.zipCode,
+      collectAddressZipCode: exchangeAddress.zipCode,
+      reShippingAddressZipCode: exchangeAddress.zipCode,
       processIngCheckYn: false,
     };
     exchangeRefundInfoInquiry(body);
@@ -212,29 +262,9 @@ const ExchangeOrder = ({
   };
 
   const handleExchangeApply = () => {
-    const collectAddress = {
-      name: collectAddrInfo.name,
-      contactNumber: `${collectAddrInfo.phonenumber.first}-${collectAddrInfo.phonenumber.second}-${collectAddrInfo.phonenumber.third}`,
-      zipCode: collectAddrInfo.zipCode,
-      address: collectAddrInfo.address,
-      addressDetail: collectAddrInfo.detailAddress,
-      shippingMessage:
-        typeof collectAddrInfo.deliveryRequestEnum === 'string'
-          ? collectAddrInfo.deliveryRequestEnum
-          : collectAddrInfo.deliveryRequestEnum?.codeName,
-    };
-
-    const reShippingAddress = {
-      name: reShippingAddrInfo.name,
-      contactNumber: `${reShippingAddrInfo.phonenumber.first}-${reShippingAddrInfo.phonenumber.second}-${reShippingAddrInfo.phonenumber.third}`,
-      zipCode: reShippingAddrInfo.zipCode,
-      address: reShippingAddrInfo.address,
-      addressDetail: reShippingAddrInfo.detailAddress,
-      shippingMessage:
-        typeof reShippingAddrInfo.deliveryRequestEnum === 'string'
-          ? reShippingAddrInfo.deliveryRequestEnum
-          : reShippingAddrInfo.deliveryRequestEnum?.codeName,
-    };
+    if (!exchangeAddress || !existingAddress) {
+      return;
+    }
 
     const body: ClaimExchangeRequestBody = {
       ordersIdEncrypt,
@@ -243,89 +273,90 @@ const ExchangeOrder = ({
       list: getRefundOrderItemList(shippingList),
       claimItemStatusEnum: AllOrderStates.Claim.EC,
       claimReasonEnum: claimReasonEnum?.code || '',
-      collectAddress,
-      reShippingAddress,
+      collectAddress: existingAddress,
+      reShippingAddress: exchangeAddress,
     };
 
     claimExchangeRequest(body);
   };
 
-  const validateForm = (info: UserAddrInfo) => {
-    if (!claimReasonEnum) {
-      showModal.text(messages.Alert323);
-      return false;
-    }
-
-    if (!exchangeReason || exchangeReason.trim() === '') {
-      showModal.text('교환사유를 입력해 주세요.');
-      return false;
-    }
-
-    if (!info.name || info.name === '') {
-      showModal.text('이름을 입력해 주세요.');
-      return false;
-    }
-
-    if (!info.detailAddress.trim()) {
-      showModal.text('수거지 상세주소를 입력해 주세요.');
-      return false;
-    }
-
-    if (!info.phonenumber.first || !info.phonenumber.second || !info.phonenumber.third) {
-      showModal.text('휴대폰 번호를 정확히 입력해 주세요.');
-      return false;
-    }
-
-    if (!collectAddrInfo.zipCode || !collectAddrInfo.address) {
-      showModal.text('상품 수거지 주소를 입력해 주세요.');
-      return false;
-    }
-
-    if (!reShippingAddrInfo.zipCode || !reShippingAddrInfo.address) {
-      showModal.text('교환상품 받으실 주소를 입력해 주세요.');
-      return false;
-    }
-
-    return true;
-  };
-
   const reasonList = [
     {
       label: '단순 변심',
-      value: { code: CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_CHANGE_OPTION.toString(), codeName: '단순 변심' },
+      userResponsibility: true,
+      value: {
+        code: CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_CHANGE_OPTION,
+        codeName: '단순 변심',
+      },
     },
     {
       label: '주문 실수',
-      value: { code: CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_ORDER_MISTAKE.toString(), codeName: '주문 실수' },
+      userResponsibility: true,
+      value: {
+        code: CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_ORDER_MISTAKE,
+        codeName: '주문 실수',
+      },
     },
     {
       label: '오배송',
-      value: { code: CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_DELIVERY_MISTAKE.toString(), codeName: '오배송' },
+      userResponsibility: false,
+      value: {
+        code: CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_DELIVERY_MISTAKE,
+        codeName: '오배송',
+      },
     },
     {
       label: '파손 및 불량',
-      value: { code: CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_DAMAGE_DEFECT.toString(), codeName: '파손 및 불량' },
+      userResponsibility: false,
+      value: {
+        code: CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_DAMAGE_DEFECT,
+        codeName: '파손 및 불량',
+      },
     },
     {
       label: '구성품 누락',
-      value: { code: CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_MISSING_DELIVERY.toString(), codeName: '구성품 누락' },
+      userResponsibility: false,
+      value: {
+        code: CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_MISSING_DELIVERY,
+        codeName: '구성품 누락',
+      },
     },
   ];
 
-  const renderDeliveryEnumValue = (addrInfo: UserAddrInfo) => {
-    if (typeof addrInfo.deliveryRequestEnum === 'string') {
-      if (addrInfo.deliveryRequestEnum.trim() === '') {
-        return '-';
-      } else {
-        return addrInfo.deliveryRequestEnum;
-      }
-    } else {
-      if (addrInfo.deliveryRequestEnum.codeName.trim() === '') {
-        return '-';
-      } else {
-        return addrInfo.deliveryRequestEnum.codeName;
-      }
+  const placeholderText = () => {
+    switch (claimReasonEnum?.code) {
+      case CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_CHANGE_OPTION:
+      case CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_ORDER_MISTAKE:
+      default:
+        return '교환사유를 입력해 주세요. (선택)';
+      case CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_DELIVERY_MISTAKE:
+      case CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_DAMAGE_DEFECT:
+      case CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_MISSING_DELIVERY:
+        return '교환사유를 입력해 주세요. (필수)';
     }
+  };
+
+  const handleReasonApply = () => {
+    if (!claimReasonEnum) {
+      setErrorMessageClaimReason('교환사유를 선택해 주세요.');
+      return;
+    }
+
+    switch (claimReasonEnum.code) {
+      case CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_CHANGE_OPTION:
+      case CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_ORDER_MISTAKE:
+      default:
+        break;
+      case CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_DELIVERY_MISTAKE:
+      case CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_DAMAGE_DEFECT:
+      case CLAIM_EXCHANGE_REQUEST_REASON.EXCHANGE_MISSING_DELIVERY:
+        if (exchangeReason === '') {
+          setErrorMessageReason('교환사유를 입력해 주세요.');
+          return;
+        }
+    }
+
+    getExchangeRefundInfo();
   };
 
   if (exchangeOrderInfo?.success === false) return <></>;
@@ -334,7 +365,6 @@ const ExchangeOrder = ({
     <>
       {step === 1 ? (
         <div>
-          1<button onClick={() => setStep(2)}>다음</button>
           <S.CancelOrderWrap>
             <S.OhDetailSecGoods>
               <S.SummaryPart>
@@ -363,7 +393,7 @@ const ExchangeOrder = ({
                       {goods.goodsList.map((item) => {
                         return (
                           <ClaimPdItemGroup
-                            key={item.goodsId}
+                            key={item.goodsId + item.buyCnt}
                             item={item}
                             shippingListItemChange={shippingListItemChange}
                             withCheckbox={isCheckboxState}
@@ -376,7 +406,7 @@ const ExchangeOrder = ({
                 })}
               </S.GoodsListPart>
             </S.OhDetailSecGoods>
-            <S.OhDetailSecReason>
+            <S.OhDetailSecReason ref={claimReasonRef}>
               <ClaimReason
                 claimReasonEnum={claimReasonEnum}
                 reasonList={reasonList}
@@ -384,12 +414,14 @@ const ExchangeOrder = ({
                 claimReason={exchangeReason}
                 setClaimReason={setExchangeReason}
                 title='교환'
-                placeholder='교환사유를 입력해 주세요.'
+                placeholder={placeholderText()}
                 images={images}
                 videos={videos}
                 handleImageUpload={handleImageUpload}
                 handleDeleteImage={handleDeleteImage}
                 handleDeleteVideo={handleDeleteVideo}
+                errorMessageClaimReason={errorMessageClaimReason}
+                errorMessageReason={errorMessageReason}
               />
             </S.OhDetailSecReason>
             <S.OhDetailSecWrap>
@@ -399,14 +431,26 @@ const ExchangeOrder = ({
               <ClaimAddr
                 title='상품 수거지 주소'
                 type='collect'
-                userAddrInfo={collectAddrInfo}
-                onChangeValue={setCollectAddrInfo}
+                userAddrInfo={existingAddress}
+                onChangeReason={(value) => {
+                  if (existingAddress) {
+                    setExistingAddress({ ...existingAddress, shippingMessage: value });
+                  }
+                }}
+              />
+              <Separator
+                $height={1}
+                $mv={20}
               />
               <ClaimAddr
                 title='교환상품 받으실 주소'
                 type='delivery'
-                userAddrInfo={reShippingAddrInfo}
-                onChangeValue={setReShippingAddrInfo}
+                userAddrInfo={exchangeAddress}
+                onChangeReason={(value) => {
+                  if (exchangeAddress) {
+                    setExchangeAddress({ ...exchangeAddress, shippingMessage: value });
+                  }
+                }}
                 deliveryDesc={true}
               />
             </S.OhDetailSecWrap>
@@ -414,7 +458,6 @@ const ExchangeOrder = ({
         </div>
       ) : (
         <div>
-          2<button onClick={() => setStep(1)}>이전</button>
           <S.CancelOrderWrap>
             <S.OhDetailSecGoodsSecond>
               <S.SummaryPartSecond>
@@ -428,6 +471,7 @@ const ExchangeOrder = ({
                   return (
                     <S.OrderDeConts key={goods.orderShippingPriceIdEncrypt}>
                       {goods.goodsList.map((item) => {
+                        if (!item.isChecked) return;
                         return (
                           <ClaimPdItemGroup
                             key={item.goodsId}
@@ -468,64 +512,56 @@ const ExchangeOrder = ({
                 <h2>교환주소</h2>
               </S.OhDetailTitle>
               <S.DetailBox>
-                <S.SubTitle>상품 수거지 주소</S.SubTitle>
+                <T.Body1_NormalB>상품 수거지 주소</T.Body1_NormalB>
                 <S.DetailList>
                   <S.DetailItem>
                     <S.ListTit>보내는 분</S.ListTit>
-                    <S.ListTxt>{collectAddrInfo.name}</S.ListTxt>
+                    <S.ListTxt>{existingAddress?.name}</S.ListTxt>
                   </S.DetailItem>
                   <S.DetailItem>
                     <S.ListTit>주소</S.ListTit>
                     <S.ListTxt>
-                      [{collectAddrInfo.zipCode}] {collectAddrInfo.address} {collectAddrInfo.detailAddress}
+                      [{existingAddress?.zipCode}] {existingAddress?.address} {existingAddress?.addressDetail}
                     </S.ListTxt>
                   </S.DetailItem>
                   <S.DetailItem>
                     <S.ListTit>휴대폰번호</S.ListTit>
-                    <S.ListTxt>
-                      {collectAddrInfo.phonenumber.first}-{collectAddrInfo.phonenumber.second}-
-                      {collectAddrInfo.phonenumber.third}
-                    </S.ListTxt>
+                    <S.ListTxt>{existingAddress?.contactNumber}</S.ListTxt>
                   </S.DetailItem>
                   <S.DetailItem>
                     <S.ListTit>배송요청사항</S.ListTit>
                     <S.ListTxt>
-                      {renderDeliveryEnumValue(collectAddrInfo)}
-                      {/* {collectAddrInfo.deliveryRequestEnum?.toString().trim() || '-'} */}
+                      {exchangeRequest?.code === 'ORDER.SHIPPING_REQUEST.DIRECT'
+                        ? exchangeRequestReason
+                        : exchangeRequest?.codeName}
                     </S.ListTxt>
                   </S.DetailItem>
                 </S.DetailList>
               </S.DetailBox>
+              <Separator
+                $height={1}
+                $mv={20}
+              />
               <S.DetailBox>
-                <S.SubTitle>교환상품 받으실 주소</S.SubTitle>
+                <T.Body1_NormalB>교환상품 받으실 주소</T.Body1_NormalB>
                 <S.DetailList>
                   <S.DetailItem>
                     <S.ListTit>받는 분</S.ListTit>
-                    <S.ListTxt>{reShippingAddrInfo.name}</S.ListTxt>
+                    <S.ListTxt>{exchangeAddress?.name}</S.ListTxt>
                   </S.DetailItem>
                   <S.DetailItem>
                     <S.ListTit>주소</S.ListTit>
                     <S.ListTxt>
-                      [{reShippingAddrInfo.zipCode}] {reShippingAddrInfo.address} {reShippingAddrInfo.detailAddress}
+                      [{exchangeAddress?.zipCode}] {exchangeAddress?.address} {exchangeAddress?.addressDetail}
                     </S.ListTxt>
                   </S.DetailItem>
                   <S.DetailItem>
                     <S.ListTit>휴대폰번호</S.ListTit>
-                    <S.ListTxt>
-                      {reShippingAddrInfo.phonenumber.first}-{reShippingAddrInfo.phonenumber.second}-
-                      {reShippingAddrInfo.phonenumber.third}
-                    </S.ListTxt>
+                    <S.ListTxt>{exchangeAddress?.contactNumber}</S.ListTxt>
                   </S.DetailItem>
                   <S.DetailItem>
                     <S.ListTit>배송요청사항</S.ListTit>
-                    <S.ListTxt>
-                      {renderDeliveryEnumValue(reShippingAddrInfo)}
-                      {reShippingAddrInfo.reason && reShippingAddrInfo.reason}
-                      {/* {(typeof reShippingAddrInfo.deliveryRequestEnum === 'object' &&
-                        reShippingAddrInfo.deliveryRequestEnum?.codeName) ||
-                        '-'} */}
-                    </S.ListTxt>
-                    {reShippingAddrInfo.reason && <S.ListTxt>{reShippingAddrInfo.reason}</S.ListTxt>}
+                    <S.ListTxt>{exchangeRequestReason ? exchangeRequestReason : '-'}</S.ListTxt>
                   </S.DetailItem>
                 </S.DetailList>
               </S.DetailBox>
@@ -568,13 +604,13 @@ const ExchangeOrder = ({
           }}
           rightonClick={() => {
             if (step === 1) {
-              if (!validateForm(collectAddrInfo)) {
-                return;
-              }
-              if (!validateForm(reShippingAddrInfo)) {
-                return;
-              }
-              getExchangeRefundInfo();
+              // if (!validateForm(collectAddrInfo)) {
+              //   return;
+              // }
+              // if (!validateForm(reShippingAddrInfo)) {
+              //   return;
+              // }
+              handleReasonApply();
             } else {
               confirmIsExchangeOrder({
                 ordersIdEncrypt,

@@ -1,6 +1,6 @@
 import { BtnSize, BtnType } from '@components/button/Button';
 
-export type ModalTypes = 'center' | 'topSheet' | 'bottomSheet' | 'full';
+export type ModalTypes = 'center' | 'topSheet' | 'bottomSheet' | 'full' | 'expandableBottomSheet';
 export type ButtonType = 'multi' | 'single';
 
 export interface BaseModalData {

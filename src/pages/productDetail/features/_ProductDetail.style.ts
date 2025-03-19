@@ -1,8 +1,12 @@
 import { T } from '@commons';
 import styled, { css } from 'styled-components';
 
+import { neutral } from '@styles/theme';
+
 import { pxToRem } from '@utils/display';
 import R from '@utils/resourceMapper';
+
+import SvgIcon from '@commons/SvgIcon';
 
 export const BottomButtonContainer = styled.div`
   position: sticky;
@@ -12,7 +16,8 @@ export const BottomButtonContainer = styled.div`
   overflow: hidden;
   width: 100%;
   padding: 2rem;
-  background-color: ${({ theme }) => theme.colors.white};
+
+  background: linear-gradient(0deg, ${({ theme }) => theme.colors.background1} 50%, rgba(255, 255, 255, 0) 100%);
   display: flex;
   align-items: center;
   .bottmBtnLike {
@@ -25,11 +30,15 @@ export const BottomButtonContainer = styled.div`
     border-radius: 1.6rem;
     border: 1px solid ${({ theme }) => theme.colors.line3};
     margin-right: 0.8rem;
+    background-color: ${({ theme }) => theme.colors.white};
   }
 `;
 
 export const ModalContainer = styled.div`
-  padding: 3rem 1rem 1rem 1rem;
+  padding: 0 1.6rem;
+  .required {
+    color: ${({ theme }) => theme.colors.status_danger};
+  }
 `;
 
 export const ModalAddGoodsContainer = styled.div`
@@ -41,27 +50,59 @@ export const ModalAddGoodsContainer = styled.div`
   }
 `;
 
-export const ModalProductItem = styled.div`
-  padding: 0 1rem;
-  width: 100%;
-  margin-top: 1rem;
-  background-color: ${({ theme }) => theme.colors.grey80};
-  span {
-    display: inline-block;
-    padding: 1rem 0;
-  }
+export const DescView = styled.section`
+  padding: 1.2rem;
+  background-color: ${({ theme }) => theme.colors.background2};
+
+  border-radius: 1.2rem;
+  margin-top: 1.2rem;
   div {
-    padding: 0.3rem 0;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    margin-bottom: 0.8rem;
     span {
-      padding: 0;
-      font-size: 1.8rem;
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 0.2rem;
+      background-color: ${({ theme }) => theme.colors.status_disabled};
+      margin-right: 0.8rem;
+      margin-top: 0.4rem;
+      flex-shrink: 0;
     }
   }
 `;
-export const ModalTotalPrice = styled.div`
+
+export const BuyModalPriceInfo = styled.div`
+  margin-top: 1.6rem;
+  position: relative;
+`;
+export const LeftItem = styled.div`
+  display: flex;
+  align-items: center;
+`;
+export const ModalPriceInfo = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 0.8rem;
+  & + div {
+    margin-top: 0.4rem;
+  }
+  div {
+    display: flex;
+    align-items: center;
+    span {
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 0.2rem;
+      background-color: ${({ theme }) => theme.colors.status_disabled};
+      margin-right: 0.8rem;
+      margin-top: 0.4rem;
+      flex-shrink: 0;
+    }
+  }
+`;
+
+export const ModalPriceSubInfo = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 1.5rem 0;
@@ -70,7 +111,11 @@ export const ModalTotalPrice = styled.div`
   }
 `;
 
-export const ModalBottomButton = styled.div``;
+export const ModalBottomButton = styled.div`
+  height: 9.6rem;
+  padding: 2rem 1.6rem;
+  background: linear-gradient(0deg, ${({ theme }) => theme.colors.background1} 50%, rgba(255, 255, 255, 0) 100%);
+`;
 
 export const ProdListThumb = styled.img``;
 
@@ -773,11 +818,11 @@ export const UserName = styled.strong`
 `;
 
 interface AccoDetaiViewProps {
-  isOpen: boolean;
+  $isOpen: boolean;
 }
 
 export const AccoDetaiView = styled.div<AccoDetaiViewProps>`
-  display: ${(props) => (props.isOpen ? 'block' : 'none')};
+  display: ${(props) => (props.$isOpen ? 'block' : 'none')};
 `;
 export const AccoDetailBtn = styled.div`
   margin-top: 1.3rem;
@@ -805,17 +850,12 @@ export const CouponContainer = styled.div`
   margin-bottom: 1rem;
 `;
 export const BottomButton = styled.div`
-  padding: 1rem 0;
+  padding: 1rem 1.6rem;
 `;
 export const Row = styled.div`
   height: 1px;
   background-color: ${({ theme }) => theme.colors.line3};
   margin: 1rem 0;
-`;
-export const CouponList = styled.div<{ $maxHeight: number }>`
-  overflow-y: auto;
-
-  max-height: ${({ $maxHeight }) => pxToRem($maxHeight * 0.8 - 120)};
 `;
 
 // #endregion
@@ -1141,6 +1181,297 @@ export const ProductDetail = styled.div`
       }
     }
   }
+`;
+
+export const CautionList = styled.div`
+  background-color: ${({ theme }) => theme.colors.background2};
+  border-radius: 1.6rem;
+  padding: 1.6rem;
+`;
+
+export const CautionTitle = styled.div`
+  ${({ theme }) => theme.fonts.body2_normalb};
+  color: ${({ theme }) => theme.colors.text4};
+  margin-bottom: 0.8rem;
+`;
+
+export const CautionInfo = styled.ul`
+  li {
+    position: relative;
+    ${({ theme }) => theme.fonts.caption1_normal};
+    color: ${({ theme }) => theme.colors.text4};
+    padding-left: 1.2rem;
+    &::before {
+      display: inline-block;
+      content: '';
+      position: absolute;
+      top: 0.8rem;
+      left: 0;
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 0.2rem;
+      background-color: ${neutral[20]};
+    }
+    + li {
+      margin-top: 1.2rem;
+    }
+    a {
+      ${({ theme }) => theme.fonts.caption1_normalb};
+      color: ${({ theme }) => theme.colors.text4};
+      text-decoration: underline;
+    }
+  }
+`;
+
+export const WriteInquiry = styled.div`
+  margin: 4rem 1.6rem;
+  p {
+    ${({ theme }) => theme.fonts.body2_normal};
+    color: ${({ theme }) => theme.colors.text4};
+    margin-bottom: 1.6rem;
+  }
+`;
+
+export const WriteInquiryTit = styled.div`
+  ${({ theme }) => theme.fonts.body1_normalb};
+  color: ${({ theme }) => theme.colors.text3};
+  margin-bottom: 0.4rem;
+`;
+
+export const InquiryListWrap = styled.div``;
+
+export const InquiryTab = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.line2};
+  padding: 0 1.6rem;
+  ul {
+    display: flex;
+  }
+`;
+
+export const TabItem = styled.li<{ $isActive: boolean }>`
+  margin: 0 10px;
+  padding: 1.2rem 0;
+  cursor: pointer;
+  ${({ theme }) => theme.fonts.body1_normalm};
+  color: ${({ theme }) => theme.colors.text6};
+  ${({ theme, $isActive }) =>
+    $isActive
+      ? css`
+          color: ${theme.colors.text3};
+          border-bottom: 2px solid ${theme.colors.text3};
+        `
+      : css`
+          color: ${theme.colors.text6};
+        `}
+`;
+
+export const MyInquiryTab = styled.div`
+  display: flex;
+`;
+
+export const TabTit = styled.span`
+  ${({ theme }) => theme.fonts.body2_normal};
+  color: ${({ theme }) => theme.colors.text3};
+  margin-right: 0.4rem;
+`;
+
+export const SecretMsg = styled.div`
+  margin: 1.6rem 1.6rem 1.2rem;
+`;
+
+// ****** ****** ****** ****** ******
+export const InquiryItemWrap = styled.div`
+  position: relative;
+  margin: 2rem 1.6rem;
+`;
+
+export const NoDataWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4rem 0;
+  p {
+    ${({ theme }) => theme.fonts.body1_normal};
+    color: ${({ theme }) => theme.colors.text3};
+    margin-top: 0.8rem;
+  }
+`;
+
+export const StatusGroup = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+`;
+
+export const StatusBox = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+export const BuyerId = styled.span`
+  ${({ theme }) => theme.fonts.body3_normalm};
+  color: ${({ theme }) => theme.colors.text5};
+`;
+
+export const AnswerStatus = styled.span`
+  ${({ theme }) => theme.fonts.body3_normalb};
+  color: ${({ theme }) => theme.colors.text5};
+  margin-right: 0.8rem;
+`;
+
+export const DateBox = styled.div`
+  display: flex;
+  align-items: center;
+  button {
+    &:first-child {
+      position: relative;
+      margin-right: 1.7rem;
+      &::before {
+        display: block;
+        content: '';
+        position: absolute;
+        top: 0.4rem;
+        right: -0.9rem;
+        width: 0.1rem;
+        height: 1rem;
+        background-color: ${({ theme }) => theme.colors.line3};
+      }
+    }
+  }
+`;
+
+export const DateInquiry = styled.span`
+  position: relative;
+  ${({ theme }) => theme.fonts.body3_normalm};
+  color: ${({ theme }) => theme.colors.text5};
+  margin-right: 1.7rem;
+  &::before {
+    display: inline-block;
+    content: '';
+    position: absolute;
+    top: 0.4rem;
+    right: -0.9rem;
+    width: 0.1rem;
+    height: 1rem;
+    background-color: ${({ theme }) => theme.colors.line3};
+  }
+`;
+
+export const QnaGroup = styled.div``;
+
+export const DateGroup = styled.div`
+  display: flex;
+  justify-content: space-between;
+  height: 2.2rem;
+  margin: 0.8rem 0 0 2.4rem;
+`;
+
+export const DateInfoBox = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+export const AnswerDate = styled.span`
+  position: relative;
+  ${({ theme }) => theme.fonts.body3_normalm};
+  color: ${({ theme }) => theme.colors.text5};
+  margin-right: 1.7rem;
+  &::before {
+    display: block;
+    content: '';
+    position: absolute;
+    top: 0.4rem;
+    right: -0.9rem;
+    width: 0.1rem;
+    height: 1rem;
+    background-color: ${({ theme }) => theme.colors.line3};
+  }
+`;
+
+export const AnswerSvgIcon = styled(SvgIcon)<{ $expanded?: boolean }>`
+  position: absolute;
+  ${(props) =>
+    props.$expanded
+      ? css`
+          bottom: 2.6rem;
+          right: 0;
+        `
+      : css`
+          top: 3rem;
+          right: 0;
+        `}
+`;
+
+export const TextBoxWrap = styled.div`
+  display: flex;
+  justify-content: end;
+  margin-top: .8rem;
+  button {
+    &:first-child {
+      position: relative;
+      margin-right: 1.7rem;
+      &::before {
+        position: absolute;
+        top: 0.4rem;
+        right: 1rem;
+        display: inline-block;
+        content: '';
+        width: 0.1rem;
+        height: 1rem;
+        background-color: ${({ theme }) => theme.colors.line3};
+      }
+    }
+  }
+`;
+
+export const InquiryContents = styled.div`
+  display: flex;
+  align-items: flex-start;
+`;
+
+export const TitSvgIcon = styled(SvgIcon)`
+  margin-top: 0.2rem;
+`;
+
+export const GoodsContents = styled.div<{ $expanded?: boolean }>`
+  flex: 1;
+  width: calc(100% - 5.2rem);
+  margin: 0 3rem 0 1rem;
+  ${({ theme }) => theme.fonts.body2_normal};
+  color: ${({ theme }) => theme.colors.text3};
+  ${(props) =>
+    props.$expanded
+      ? css`
+          white-space: normal;
+          overflow: visible;
+        `
+      : css`
+          ${({ theme }) => theme.mixins.ellipsis(3)};
+          max-height: 66px;
+        `};
+`;
+
+export const AnswerContents = styled.div`
+  display: flex;
+  align-items: flex-start;
+  margin-top: 1.6rem;
+`;
+
+export const AnswerBox = styled.div`
+  ${({ theme }) => theme.fonts.body2_normal};
+  color: ${({ theme }) => theme.colors.text3};
+  margin-left: 1rem;
+`;
+
+export const SvgButton = styled.button``;
+//
+
+export const BtnBox = styled.div`
+  margin: 1.6rem 1.6rem 0 1.6rem;
 `;
 
 export const ProductDetailMore = styled.div`
@@ -1540,3 +1871,50 @@ export const AnnouncementView = styled.div`
     }
   }
 `;
+
+//#region productBuy Modal
+export const OptionBoxWrap = styled.div`
+  position: relative;
+  background-color: ${(props) => props.theme.colors.background2};
+  padding: 2rem;
+  margin-top: 0.8rem;
+  border-radius: 1.2rem;
+`;
+
+export const Info = styled.div`
+  margin-bottom: 1rem;
+  display: flex;
+`;
+
+export const Name = styled.span`
+  ${({ theme }) => theme.fonts.body2_normalm};
+  ${({ theme }) => theme.mixins.ellipsis(2)};
+  flex: 1;
+  margin-right: 1.2rem;
+`;
+
+export const QuantityInfo = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+export const OptionPrice = styled.div`
+  font-size: 1.4rem;
+  font-weight: bold;
+`;
+export const AddOptionBedge = styled.span`
+  flex-shrink: 0;
+  width: 4.6rem;
+  height: 2rem;
+  border-radius: 0.8rem;
+  border: 1px solid ${(props) => props.theme.colors.line3};
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-right: 0.8rem;
+`;
+
+//#endregion

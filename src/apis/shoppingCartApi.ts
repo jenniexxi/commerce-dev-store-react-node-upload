@@ -190,7 +190,7 @@ export type UpdateCartResp = APIResponse & {
 };
 
 export type CartsCreateResp = APIResponse & {
-  data: CartsCreate[];
+  data: CartsCreate;
 };
 
 export type CartsDeleteResp = APIResponse & {

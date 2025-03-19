@@ -475,8 +475,10 @@ export const TopSumm = styled.div`
 
 export const DetailAddTitle = styled.div`
   display: flex;
+  align-items: center;
   justify-content: space-between;
   padding-bottom: 0.2rem;
+  height: 5.4rem;
   h2 {
     ${({ theme }) => theme.fonts.headline2b};
     color: ${({ theme }) => theme.colors.text3};
@@ -515,6 +517,10 @@ export const AddPayInfoContainer = styled.div``;
 
 export const PayInfoBox = styled.div`
   margin: 1rem auto;
+
+  .__hectofinancial_payment_wrapper:not(:first-child) {
+    height: 0 !important;
+  }
 `;
 
 export const PayInfoDesc = styled.p`

@@ -24,6 +24,8 @@ const Layout = () => {
   // 페이지 변경 시 헤더 초기화
   useEffect(() => {
     resetHeader();
+    // 신규 페이지 접근시 스크롤 맨위로
+    window.scrollTo(0, 0);
   }, [location.pathname, resetHeader]);
 
   return (

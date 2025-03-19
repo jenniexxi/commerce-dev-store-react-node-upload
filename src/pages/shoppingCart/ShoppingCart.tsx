@@ -130,13 +130,8 @@ const ShoppingCart = () => {
   useEffect(() => {
     if (data) {
       setCartData((prev) => transformCartList(data?.data, prev));
-      console.log('transform complete');
     }
   }, [data]);
-
-  useEffect(() => {
-    console.log('selectedCart change', selectedCartId);
-  }, [selectedCartId]);
 
   useEffect(() => {
     if (summaryData?.data.summery.paymentPrice) {
@@ -152,7 +147,7 @@ const ShoppingCart = () => {
     if (cartData.length > 0) {
       const allChecked = cartData?.every((item) => item.isChecked);
       setCheckall(allChecked ? allChecked : false);
-      console.log('cartdata change');
+
       if (!initCart.current && cartData && cartData.length > 0) {
         updateAllCartChecked(true);
 
@@ -316,7 +311,12 @@ const ShoppingCart = () => {
     if (checked) {
       const allCartIds =
         cartData?.flatMap((cart) =>
-          cart.shippingList.flatMap((shipping) => shipping.goodsList.flatMap((goods) => [...goods.cartIdList])),
+          cart.shippingList.flatMap((shipping) =>
+            shipping.goodsList.flatMap((goods) => [
+              ...goods.cartIdList,
+              ...goods.addGoodsList.flatMap((addGoods) => addGoods.cartId),
+            ]),
+          ),
         ) || [];
       console.log(allCartIds);
       setSelectedCartId(allCartIds);

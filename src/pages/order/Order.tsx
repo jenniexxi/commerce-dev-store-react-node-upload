@@ -1,66 +1,62 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import DaumPostcode from 'react-daum-postcode';
 import { useLocation } from 'react-router-dom';
 
 import { T } from '@commons';
 import { Accordion } from '@components';
-import { Modal } from '@components';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { GoodsDisplaySalesStatus } from '@type';
+import { useQuery } from '@tanstack/react-query';
+import { GoodsDisplaySalesStatus, HFMatchingTable, HFPaymentTableCode } from '@type';
 
-import { Option } from '@components/selector/Selector';
+import { useOrderStore } from '@stores/useOrderStore';
 
 import { useHeader } from '@hooks/useHeader';
+import { useRRound } from '@hooks/useRRoundPay';
 
 import { CustomCartItem, CustomGoods } from '@pages/shoppingCart/ShoppingCart';
 
-import { numberWithCommas } from '@utils/display';
+import { colors } from '@styles/theme';
 
-import { Price } from '@apis/apiCommonType';
-import BuyersApi, { CreateBuyersBody } from '@apis/buyersApi';
-import orderApi, { CouponList, CouponType, OrderItem } from '@apis/orderApi';
-import { AvailableCouponList } from '@apis/orderApi';
+import orderApi from '@apis/orderApi';
 import { CartsList, Goods } from '@apis/shoppingCartApi';
 import SystemAPI from '@apis/systemApi';
 
 import Separator from '@commons/Separator';
 
 import * as S from './Order.style';
-import { DelivieryInfo, OrderList, OrderSummary } from './features';
-import Coupon from './features/Coupon';
+import {
+  CashReceiptInfo,
+  CouponInfoView,
+  DelivieryInfo,
+  Mileage,
+  OrderList,
+  OrderSummary,
+  RefundInfo,
+} from './features';
+import PaymentButton from './features/PaymentButton';
 
-type CouponInfo = {
-  couponId: number;
-  couponIssueId: number;
-  displayName: string;
-  couponDiscountPrice: Price;
-  couponSalePrice: Price;
-  availableYn: boolean;
-  couponCode: string;
-  availableCouponCnt: number;
-  discountRate?: number;
-  maxDiscountPrice?: Price;
+export type UsedMileageInfo = {
+  shopping: string;
+  pay: string;
 };
-
 const Order = () => {
   useHeader('주문결제', { showHeader: true });
-  const location = useLocation();
-
+  const [usedMileage, setUsedMileage] = useState<UsedMileageInfo>({ shopping: '', pay: '' });
   // 배송지 관련 상태
   const [orderItems, setOrderItems] = useState<CustomCartItem[]>([]);
 
+  // pay관련 state
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<HFPaymentTableCode | null>(null);
+
+  const location = useLocation();
+
+  const { error, initialize, initializePayment, renderPaymentUI, updatePaymentUI } = useRRound();
+
+  const { setBuyer, setDelCartIdList, setCartIdList, payment, setPayment } = useOrderStore();
+
+  const hfPaymentInstance = useRef(null);
+
   // 쿠폰 관련
-  const [selectedCoupons, setSelectedCoupons] = useState<{
-    [cartId: number]: {
-      type: 'regular' | 'dup' | 'store';
-      couponCode: string;
-      couponDiscountPrice: {
-        number: number;
-        currencyCode: string;
-      };
-    };
-  }>({});
 
   const { data: buyerInfo } = useQuery({ queryKey: ['buyerInfo'], queryFn: () => SystemAPI.getBuyerInfo() });
 
@@ -84,6 +80,82 @@ const Order = () => {
       }),
     enabled: !!location.state?.selectedCartId,
   });
+
+  useEffect(() => {
+    if (buyerInfo?.success) {
+      setBuyer({
+        name: buyerInfo.data.buyer.buyerName,
+        email: buyerInfo.data.buyer.buyerEmail,
+        cellPhone: buyerInfo.data.buyer.buyerCellPhone,
+      });
+    }
+  }, [buyerInfo]);
+
+  //
+  useEffect(() => {
+    if (selectedMethod) {
+      //@ts-ignore
+      setPayment({ ...payment, paymentMethodEnum: HFMatchingTable[selectedMethod] });
+    }
+  }, [selectedMethod]);
+
+  useEffect(() => {
+    if (location.state?.selectedCartId) {
+      setCartIdList(location.state?.selectedCartId);
+      setDelCartIdList([]);
+    }
+  }, [location.state?.selectedCartId]);
+
+  useEffect(() => {
+    if (paymentReqInfo?.success) {
+      const initSDK = async () => {
+        try {
+          // API에서 shopId 가져오기
+
+          // SDK 초기화
+          await initialize({
+            shopId: paymentReqInfo.data.hectoPg.shopId,
+            mode: 'development',
+          });
+
+          setIsInitialized(true);
+        } catch (err) {
+          console.error('SDK 초기화 실패:', err);
+        }
+      };
+
+      initSDK();
+    }
+  }, [paymentReqInfo, initialize]);
+
+  useEffect(() => {
+    if (!orderSummary?.success || !paymentReqInfo?.success) return;
+
+    if (!isInitialized) return;
+
+    const setupPayment = async () => {
+      try {
+        const paymentsInstance = await initializePayment({
+          payToken: paymentReqInfo.data.hectoPg.payToken,
+          payPrice: orderSummary.data.pgPaymentPrice.number,
+          deliveryFee: orderSummary.data.shippingPrice.number,
+          method: ['ALL'],
+        });
+        hfPaymentInstance.current = paymentsInstance;
+        // 결제 UI 렌더링
+        const paymentMethod = await renderPaymentUI(paymentsInstance, '#payment-container');
+
+        // 결제수단 선택 이벤트 리스닝
+        paymentMethod.event('SELECT_PAYMENTS_METHOD', (method: string) => {
+          setSelectedMethod(method);
+        });
+      } catch (err) {
+        console.error('결제 초기화 실패:', err);
+      }
+    };
+
+    setupPayment();
+  }, [paymentReqInfo, orderSummary, isInitialized, initializePayment, renderPaymentUI]);
 
   useEffect(() => {
     if (orderInfo?.success) {
@@ -193,160 +265,6 @@ const Order = () => {
     });
   };
 
-  // 최대 할인 쿠폰 찾기
-  const getMaxDiscountCoupon = (cartId: number) => {
-    const allCoupons = [
-      ...(orderInfo?.data.coupon.availableCouponList?.find((c: AvailableCouponList) => c.cartId === cartId)
-        ?.couponList || []),
-      ...(orderInfo?.data.dupCoupon.availableCouponList?.find((c: AvailableCouponList) => c.cartId === cartId)
-        ?.couponList || []),
-      ...(orderInfo?.data.storeCoupon.availableCouponList?.find((c: AvailableCouponList) => c.cartId === cartId)
-        ?.couponList || []),
-    ].filter((c) => c.availableYn);
-
-    return allCoupons.reduce((max, current) => {
-      return current.couponDiscountPrice.number > max.couponDiscountPrice.number ? current : max;
-    }, allCoupons[0]);
-  };
-
-  // 쿠폰 선택 핸들러
-  const handleCouponSelect = (cartId: number, value: string) => {
-    if (!value) {
-      setSelectedCoupons((prev) => {
-        const next = { ...prev };
-        delete next[cartId];
-        return next;
-      });
-      return;
-    }
-
-    const [type, code] = value.split('_') as ['regular' | 'dup' | 'store', string];
-
-    // 선택된 쿠폰 찾기
-    const selectedCouponList =
-      type === 'regular'
-        ? orderInfo?.data.coupon.availableCouponList
-        : type === 'dup'
-          ? orderInfo?.data.dupCoupon.availableCouponList
-          : orderInfo?.data.storeCoupon.availableCouponList;
-
-    const selectedCoupon = selectedCouponList
-      ?.find((c: AvailableCouponList) => c.cartId === cartId)
-      ?.couponList.find((c: CouponList) => c.couponCode === code && c.availableYn);
-
-    if (selectedCoupon) {
-      setSelectedCoupons((prev) => {
-        const next = { ...prev };
-
-        // 같은 쿠폰이 다른 상품에 적용된 경우 해제
-        Object.entries(prev).forEach(([prevCartId, prevCoupon]) => {
-          if (prevCoupon.couponCode === code && Number(prevCartId) !== cartId) {
-            delete next[Number(prevCartId)];
-          }
-        });
-
-        // 최대 할인 쿠폰이었다면 다른 상품들의 쿠폰도 재검사
-        const maxDiscountCoupon = getMaxDiscountCoupon(cartId);
-        if (maxDiscountCoupon?.couponCode === prev[cartId]?.couponCode) {
-          Object.keys(prev).forEach((prevCartId) => {
-            const cartMaxDiscount = getMaxDiscountCoupon(Number(prevCartId));
-            if (cartMaxDiscount) {
-              next[Number(prevCartId)] = {
-                type: 'regular',
-                couponCode: cartMaxDiscount.couponCode,
-                couponDiscountPrice: cartMaxDiscount.couponDiscountPrice,
-              };
-            }
-          });
-        }
-
-        next[cartId] = {
-          type,
-          couponCode: code,
-          couponDiscountPrice: selectedCoupon.couponDiscountPrice,
-        };
-        return next;
-      });
-    }
-  };
-  // 쿠폰 옵션 생성
-  const getCouponOptions = (cartId: number) => {
-    // 1. 사용 가능한 쿠폰만 필터링
-    const getAvailableCoupons = (coupons: CouponType | undefined): CouponInfo[] => {
-      if (!coupons?.availableCouponList) return [];
-
-      const foundCoupon = coupons.availableCouponList.find((c) => c.cartId === cartId);
-
-      if (!foundCoupon?.couponList) return [];
-
-      return foundCoupon.couponList.filter((c) => c.availableYn);
-    };
-
-    const regularCoupons = getAvailableCoupons(orderInfo?.data.coupon);
-    const dupCoupons = getAvailableCoupons(orderInfo?.data.dupCoupon);
-    const storeCoupons = getAvailableCoupons(orderInfo?.data.storeCoupon);
-
-    // 2. 쿠폰 라벨 포맷팅
-    const formatDiscountLabel = (coupon: CouponInfo): string => {
-      const discountAmount = numberWithCommas(coupon.couponDiscountPrice.number);
-      // 정률 할인인 경우
-      if (coupon.discountRate) {
-        return `${coupon.displayName} (-${discountAmount}원)`;
-      }
-      // 정액 할인
-      return `${coupon.displayName} (-${discountAmount}원)`;
-    };
-
-    // 3. 쿠폰 정렬
-    const sortCoupons = (coupons: CouponInfo[]): CouponInfo[] => {
-      return [...coupons].sort((a, b) => {
-        // 발급일 비교 로직 (추후 추가)
-        return a.displayName.localeCompare(b.displayName, 'ko', {
-          sensitivity: 'base',
-          numeric: true,
-        });
-      });
-    };
-
-    const options: Option<string>[] = [
-      { label: '쿠폰 선택', value: '' },
-      ...sortCoupons(regularCoupons).map((coupon) => ({
-        label: formatDiscountLabel(coupon),
-        value: `regular_${coupon.couponCode}`,
-      })),
-      ...(dupCoupons.length > 0 && selectedCoupons[cartId]?.type === 'regular'
-        ? sortCoupons(dupCoupons).map((coupon) => ({
-            label: `[중복] ${formatDiscountLabel(coupon)}`,
-            value: `dup_${coupon.couponCode}`,
-          }))
-        : []),
-      ...sortCoupons(storeCoupons).map((coupon) => ({
-        label: `[스토어] ${formatDiscountLabel(coupon)}`,
-        value: `store_${coupon.couponCode}`,
-      })),
-    ];
-
-    return options.length > 1 ? options : [];
-  };
-
-  const hasAvailableCoupons = (coupons: CouponType | undefined, cartId: number): boolean => {
-    if (!coupons?.availableCouponList) return false;
-
-    const foundCoupon = coupons.availableCouponList.find((c) => c.cartId === cartId);
-    if (!foundCoupon?.couponList) return false;
-
-    return foundCoupon.couponList.some((coupon: CouponList) => coupon.availableYn);
-  };
-
-  const hasAvailableSellerCoupons = (
-    coupons: OrderItem['storeCoupon'] | undefined,
-    goodsList: CartsList['shippingList'][0]['goodsList'],
-  ): boolean => {
-    if (!coupons?.availableCouponList) return false;
-
-    return coupons.availableCouponList.some((coupon) => goodsList.some((goods) => goods.cartId === coupon.cartId));
-  };
-
   const accordionItems = [
     {
       title: '배송 정보',
@@ -357,14 +275,16 @@ const Order = () => {
         <S.OrderAccTitle>
           <T.Headline2B>주문상품</T.Headline2B>
 
-          {/* <S.OrderDescText>
+          <S.OrderDescText>
             <T.Body2_Normal $color={colors.text5}>
-              {orderItems?.data.cartList[0].shippingList[0].goodsList[0].displayGoodsName}
+              {orderInfo?.data.cartList[0].shippingList[0].goodsList[0].displayGoodsName}
             </T.Body2_Normal>
-            {orderItems?.data.cartList.length && (
-              <T.Body2_Normal $color={colors.text5}>외 {orderItems?.data.cartList.length - 1}건</T.Body2_Normal>
+            {orderInfo?.data.cartList.length && (
+              <T.Body2_Normal $color={colors.text5}>
+                {orderInfo?.data.cartList.length !== 1 && `외 ${orderInfo?.data.cartList.length - 1}건`}
+              </T.Body2_Normal>
             )}
-          </S.OrderDescText> */}
+          </S.OrderDescText>
         </S.OrderAccTitle>
       ),
 
@@ -373,18 +293,20 @@ const Order = () => {
   ];
 
   const accordionBottomItems = [
-    {
-      title: '쇼핑지원금 / 010PAY 포인트',
-      content: <></>,
-    },
-    {
-      title: '결제 수단',
-      content: <></>,
-    },
-    {
-      title: '현금영수증',
-      content: <></>,
-    },
+    ...(buyerInfo?.data?.buyer.pay010UseYn
+      ? [
+          {
+            title: '010PAY 포인트',
+            content: (
+              <Mileage
+                payMileageInfo={orderInfo?.data.pay010Mileage}
+                mileage={usedMileage}
+                setMileage={setUsedMileage}
+              />
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -394,18 +316,38 @@ const Order = () => {
         isGroup={false}
         defaultOpenIndex={[0]}
       />
-      <Coupon
+
+      <CouponInfoView
         coupon={orderInfo?.data?.coupon}
         doubleCoupon={orderInfo?.data?.dupCoupon}
         storeCoupon={orderInfo?.data?.storeCoupon}
+        orderData={orderItems}
       />
       <Separator $height={8} />
       <Accordion
         items={accordionBottomItems}
         isGroup={false}
-        defaultOpenIndex={[0, 1, 2]}
+        defaultOpenIndex={[0]}
       />
+      <S.PaymentMethod id={'payment-container'} />
+      <Separator $height={8} />
+
+      {selectedMethod === 'VACT' && (
+        <RefundInfo
+          bank={orderInfo?.data.bank}
+          bankListEnum={paymentReqInfo?.data.bankEnumList}
+        />
+      )}
+      {(selectedMethod === 'MONYNORM' || selectedMethod === 'BANKACCT' || selectedMethod === 'VACT') && (
+        <CashReceiptInfo cashReceipt={orderInfo?.data.cashReceipt} />
+      )}
+
       <OrderSummary summaryData={orderSummary?.data} />
+      <Separator $height={8} />
+      <PaymentButton
+        paymentPrice={orderSummary?.data.pgPaymentPrice}
+        hfInstance={hfPaymentInstance}
+      />
     </S.OrderContainer>
   );
 };

@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { T } from '@commons';
 import { useMutation } from '@tanstack/react-query';
-import { DiscountTypeCodes, UseDateTypeCodes } from '@type';
+import { CouponTypeCode, CouponTypeCodes, DiscountTypeCodes, UseDateTypeCodes } from '@type';
 import dayjs from 'dayjs';
 
 import { addToast } from '@components/toast/Toast';
@@ -18,10 +18,9 @@ import SvgIcon from '@commons/SvgIcon';
 
 import * as S from './Coupon.style';
 
-export type CouponType = 'Store' | 'Double' | 'Product';
 type Props = {
   goodsId: number;
-  type: CouponType;
+  type: CouponTypeCode;
   info: CouponInfo;
   refetch: () => void;
 };
@@ -41,11 +40,11 @@ const Coupon = ({ goodsId, type, info, refetch }: Props) => {
   });
   const badgeText = () => {
     switch (type) {
-      case 'Store':
+      case CouponTypeCodes.Store:
         return '스토어 쿠폰';
-      case 'Double':
+      case CouponTypeCodes.Duplication:
         return '더블 쿠폰';
-      case 'Product':
+      case CouponTypeCodes.Goods:
         return '상품 쿠폰';
     }
   };

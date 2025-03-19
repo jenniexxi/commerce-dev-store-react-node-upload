@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 import { Modal } from '@components';
 
+import ReportGoodsModal from '@components/modal/ReportGoodsModal';
+
 import { AnnouncementContent, DetailsContent } from '@apis/goodsApi';
 
 import AnnouncementModal from './AnnouncementModal';
@@ -13,9 +15,12 @@ type Props = {
   goodsId: number;
 };
 
-const ProductAnnouncement = ({ goodsInfo, announcement }: Props) => {
+const ProductAnnouncement = ({ goodsInfo, announcement, goodsId }: Props) => {
   const [announcementModal, setAnnouncementModal] = useState(false);
+  const [showGoodsReportModal, setShowGoodsReportModal] = useState(false);
+
   if (!goodsInfo || !announcement) return;
+
   const showAnnouncementModal = () => {
     setAnnouncementModal(true);
   };
@@ -70,7 +75,12 @@ const ProductAnnouncement = ({ goodsInfo, announcement }: Props) => {
           <button type='button'>쇼핑 안전거래 TIP</button>
         </li>
         <li>
-          <button type='button'>상품정보 신고하기</button>
+          <button
+            type='button'
+            onClick={() => setShowGoodsReportModal(true)}
+          >
+            상품정보 신고하기
+          </button>
         </li>
       </S.ProdAnnouncementList>
       {announcementModal && (
@@ -81,6 +91,13 @@ const ProductAnnouncement = ({ goodsInfo, announcement }: Props) => {
         >
           <AnnouncementModal announcement={announcement} />
         </Modal>
+      )}
+      {showGoodsReportModal && (
+        <ReportGoodsModal
+          isVisible={showGoodsReportModal}
+          onHide={() => setShowGoodsReportModal(false)}
+          goodsId={goodsId.toString()}
+        />
       )}
     </S.ProdAnnouncementView>
   );

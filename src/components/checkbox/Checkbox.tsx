@@ -12,6 +12,7 @@ type CheckboxProps = {
   onChange: (checked: boolean) => void;
   disabled?: boolean;
   fontType?: keyof typeof fonts;
+  chkType?: 'fill' | 'outline';
   className?: string;
 };
 
@@ -23,6 +24,7 @@ const Checkbox = ({
   onChange,
   disabled = false,
   fontType = 'body1_normal',
+  chkType = 'fill',
   className,
 }: CheckboxProps) => {
   return (
@@ -38,6 +40,7 @@ const Checkbox = ({
           onChange(e.target.checked);
         }}
         disabled={disabled}
+        $chkType={chkType}
       />
       <S.CheckboxLabel
         htmlFor={id}

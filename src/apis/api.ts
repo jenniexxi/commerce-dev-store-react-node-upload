@@ -105,7 +105,7 @@ const logResponse = (response: AxiosResponse | undefined) => {
 
 // 요청 인터셉터
 axiosInstance.interceptors.request.use((config) => {
-  logRequest(config);
+  // logRequest(config);
 
   const token = cookieManager.getAuthToken();
   const session = cookieManager.getSessionID();
@@ -125,7 +125,7 @@ axiosInstance.interceptors.request.use((config) => {
 // 응답 인터셉터
 axiosInstance.interceptors.response.use(
   (response) => {
-    logResponse(response);
+    // logResponse(response);
     return response;
   },
   (error) => {

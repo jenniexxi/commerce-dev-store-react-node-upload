@@ -6,6 +6,18 @@ import { pxToRem } from '@utils/display';
 
 import { BtnSize, BtnType } from './Button';
 
+export const TextButton = styled.button<{ $fontType: keyof typeof fonts; $color: string }>`
+  display: flex;
+  align-items: center;
+  ${({ $fontType }) => fonts[$fontType]};
+  min-width: auto;
+  flex-shrink: 0;
+  ${({ $color }) =>
+    $color &&
+    css`
+      color: ${$color};
+    `}
+`;
 export const Button = styled.button<{
   $btnType: BtnType;
   $size: BtnSize;
@@ -13,11 +25,13 @@ export const Button = styled.button<{
   disabled?: boolean;
   $align?: 'center';
   $textHighLight?: boolean;
+  $color?: string;
 }>`
   display: flex;
   align-items: center;
   padding: 0 2.4rem;
   min-width: auto;
+  flex-shrink: 0;
 
   ${({ $align }) =>
     $align &&
@@ -27,9 +41,13 @@ export const Button = styled.button<{
 
   ${({ $width }) =>
     $width && typeof $width === 'number'
-      ? css`
-          width: ${pxToRem($width)};
-        `
+      ? $width === 1
+        ? css`
+            flex: 1;
+          `
+        : css`
+            width: ${pxToRem($width)};
+          `
       : css`
           width: ${$width};
         `}
@@ -73,6 +91,7 @@ export const Button = styled.button<{
       case 'md':
         return css`
           border-radius: 1.2rem;
+          padding: 0 1.6rem;
           height: 4.8rem;
           ${fonts.body1_normalb};
         `;
@@ -90,6 +109,10 @@ export const Button = styled.button<{
           ${fonts.body3_normalm};
           padding: 0 1.2rem;
         `;
+      case 'text':
+        return css`
+          ${fonts.body3_normalm};
+        `;
       case 'lg':
       default:
         return css`
@@ -103,6 +126,11 @@ export const Button = styled.button<{
     $textHighLight &&
     css`
       color: ${disabled ? theme.colors.white : theme.colors.primary1};
+    `}
+    ${({ $color }) =>
+    $color &&
+    css`
+      color: ${$color};
     `}
 `;
 export const IconDivider = styled.span`

@@ -1,6 +1,6 @@
 import { ChangeEvent } from 'react';
 
-import { BtnSize } from '@components/button/Button';
+import { colors } from '@styles/theme';
 
 import R from '@utils/resourceMapper';
 
@@ -11,13 +11,12 @@ import * as S from './QuantityCounter.style';
 type Props = {
   quantity: number;
   setQuantity: (quantity: number) => void;
-  size?: BtnSize;
-  width?: number;
+
   maxValue?: number;
   minValue?: number;
 };
 
-const QuantityCounter = ({ quantity, setQuantity, size = 'xsm', minValue = 1, width, maxValue = 999 }: Props) => {
+const QuantityCounter = ({ quantity, setQuantity, minValue = 1, maxValue = 999 }: Props) => {
   const max = maxValue > 999 ? 999 : maxValue;
   const plusQuantity = () => {
     if (max) {
@@ -52,8 +51,14 @@ const QuantityCounter = ({ quantity, setQuantity, size = 'xsm', minValue = 1, wi
 
   return (
     <S.Container>
-      <S.QuntitiyBtn onClick={minusQuantity}>
-        <SvgIcon name={R.svg.icoMinus} />
+      <S.QuntitiyBtn
+        onClick={minusQuantity}
+        disabled={quantity === minValue}
+      >
+        <SvgIcon
+          name={R.svg.icoMinus}
+          tintColor={quantity === minValue ? colors.icon4 : colors.text3}
+        />
       </S.QuntitiyBtn>
       <S.QuntityInput
         name='name'
@@ -61,8 +66,14 @@ const QuantityCounter = ({ quantity, setQuantity, size = 'xsm', minValue = 1, wi
         value={quantity.toString()}
         onChange={handleChange}
       />
-      <S.QuntitiyBtn onClick={plusQuantity}>
-        <SvgIcon name={R.svg.icoPlus} />
+      <S.QuntitiyBtn
+        onClick={plusQuantity}
+        disabled={quantity === maxValue}
+      >
+        <SvgIcon
+          name={R.svg.icoPlus}
+          tintColor={quantity === maxValue ? colors.icon4 : colors.text3}
+        />
       </S.QuntitiyBtn>
     </S.Container>
   );

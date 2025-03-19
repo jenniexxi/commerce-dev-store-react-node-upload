@@ -224,22 +224,12 @@ export const PayInfoDesc = styled.p`
 //#region 교환
 export const ItemPart = styled.div``;
 
-export const SubTitle = styled.h3`
-  ${({ theme }) => theme.fonts.body1_normalb};
-  color: ${({ theme }) => theme.colors.text3};
-`;
-
 export const ItemConts = styled.div``;
 
 export const ItemBox = styled.div`
-  margin: 1rem auto;
-  label {
-    font-size: 1.4rem;
-  }
-  input {
-    width: 100%;
-    height: 3.6rem;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 `;
 
 export const ItemGroup = styled.div`
@@ -251,14 +241,6 @@ export const ItemGroup = styled.div`
 `;
 
 export const MoGroup = styled.div``;
-
-export const CollectDesc = styled.p`
-  font-size: 1.4rem;
-`;
-
-export const DeliveryDesc = styled.p`
-  font-size: 1.4rem;
-`;
 
 export const ReasonShow = styled.div``;
 
@@ -293,11 +275,10 @@ export const ImgPreview = styled.div`
 
 export const DetailBox = styled.div`
   &:nth-child(2) {
-    padding: 0.8rem 0 2rem;
-    border-bottom: 1px solid ${({ theme }) => theme.colors.line2};
+    /* padding: 0.8rem 0 2rem; */
   }
   &:last-child {
-    padding: 2rem 0 0 0;
+    /* padding: 2rem 0 0 0; */
   }
 `;
 
@@ -317,6 +298,7 @@ export const ListTit = styled.span`
   color: ${({ theme }) => theme.colors.text5};
   width: 8rem;
   margin-right: 0.8rem;
+  flex-shrink: 0;
 `;
 
 export const ListTxt = styled.span`

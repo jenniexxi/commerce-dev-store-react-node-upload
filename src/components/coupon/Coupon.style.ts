@@ -1,10 +1,9 @@
+import { CouponTypeCode, CouponTypeCodes } from '@type';
 import styled, { css } from 'styled-components';
 
 import { purple, redOrange, yellowGreen } from '@styles/theme';
 
 import { pxToRem } from '@utils/display';
-
-import { CouponType } from './Coupon';
 
 export const Container = styled.div`
   display: flex;
@@ -41,7 +40,7 @@ export const RowView = styled.div<{ $mb: number }>`
   margin-bottom: ${({ $mb }) => pxToRem($mb)};
 `;
 
-export const CouponTypeBadge = styled.div<{ $type: CouponType }>`
+export const CouponTypeBadge = styled.div<{ $type: CouponTypeCode }>`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -50,25 +49,25 @@ export const CouponTypeBadge = styled.div<{ $type: CouponType }>`
   border-radius: 0.8rem;
   ${({ $type, theme }) => {
     switch ($type) {
-      case 'Store':
+      case CouponTypeCodes.Store:
         return css`
-          background-color: ${yellowGreen[20]};
+          background-color: ${purple[10]};
           p {
-            color: ${yellowGreen[80]};
+            color: ${purple[70]};
           }
         `;
-      case 'Double':
+      case CouponTypeCodes.Duplication:
         return css`
           background-color: ${redOrange[10]};
           p {
             color: ${theme.colors.secondary1};
           }
         `;
-      case 'Product':
+      case CouponTypeCodes.Goods:
         return css`
-          background-color: ${purple[10]};
+          background-color: ${yellowGreen[20]};
           p {
-            color: ${purple[70]};
+            color: ${yellowGreen[80]};
           }
         `;
     }

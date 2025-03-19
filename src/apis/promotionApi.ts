@@ -14,6 +14,7 @@ import { PromotionUrl } from './urls';
 export type CouponInfo = {
   couponId: number;
   displayName: string;
+  typeEnum: Code<CouponTypeCode>;
   code: string;
   deviceTypeEnumList: Code<DeviceTypeCode>[];
   discountTypeEnum: Code<DiscountTypeCode>;
@@ -59,6 +60,7 @@ export type OrderCouponListResp = APIResponse & {
 };
 
 export type CartCouponItem = {
+  goodsId: number;
   couponId: number;
   typeEnum: Code<CouponTypeCode>;
   displayName: string;

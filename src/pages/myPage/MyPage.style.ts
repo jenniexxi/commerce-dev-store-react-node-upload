@@ -321,7 +321,7 @@ export const Date = styled.span`
   color: ${({ theme }) => theme.colors.text5};
 `;
 
-export const DetailBox = styled(Link)`
+export const DetailBox = styled.div`
   display: flex;
   margin-bottom: 0.8rem;
   img {

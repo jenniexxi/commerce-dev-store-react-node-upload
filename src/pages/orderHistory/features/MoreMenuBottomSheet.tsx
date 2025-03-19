@@ -3,17 +3,41 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@components';
 import { AllOrderStates } from '@type';
 
+import { ClaimType } from '@pages/ClaimRequest/ClaimRequest';
+
+import { PAGE_ROUTES } from '@router/Routes';
+
 import { OrderListGoods } from '@apis/orderApi';
 
 import * as S from './_OrderHistory.style';
 
 type Props = {
   goodsInfo: OrderListGoods;
+  ordersIdEncrypt: string;
+  orderShippingPriceIdEncrypt: string;
+  orderItemIdEncrypt: string;
 };
 
-const MoreMenuBottomSheet = ({ goodsInfo }: Props) => {
+const MoreMenuBottomSheet = ({
+  goodsInfo,
+  ordersIdEncrypt,
+  orderShippingPriceIdEncrypt,
+  orderItemIdEncrypt,
+}: Props) => {
   const navigate = useNavigate();
   let modalInfo: JSX.Element[] = [];
+
+  const moveToClaimOrder = (type: ClaimType) => {
+    navigate(PAGE_ROUTES.CLAIM_REQUEST.path, {
+      state: {
+        type,
+        ordersIdEncrypt,
+        orderShippingPriceIdEncrypt,
+        isCheckboxState: true,
+        orderItemIdEncrypt,
+      },
+    });
+  };
 
   const renderGoodsInfo = () => {
     return (
@@ -46,6 +70,7 @@ const MoreMenuBottomSheet = ({ goodsInfo }: Props) => {
         width='100%'
         align='center'
         title='교환신청'
+        onClick={() => moveToClaimOrder('Exchange')}
       />
     );
   };
@@ -57,6 +82,7 @@ const MoreMenuBottomSheet = ({ goodsInfo }: Props) => {
         width='100%'
         align='center'
         title='반품신청'
+        onClick={() => moveToClaimOrder('Return')}
       />
     );
   };

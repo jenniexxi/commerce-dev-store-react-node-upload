@@ -1,7 +1,6 @@
 import styled, { css } from 'styled-components';
 
 import { pxToRem } from '@utils/display';
-import R from '@utils/resourceMapper';
 
 export const SelectContainer = styled.div<{ $width?: number; $disable: boolean }>`
   position: relative;
@@ -19,6 +18,7 @@ export const SelectContainer = styled.div<{ $width?: number; $disable: boolean }
 export const Selector = styled.div<{
   $selectedOption: any;
   $isOpen: boolean;
+  $isBottomPopup: boolean;
   $disable: boolean;
 }>`
   position: relative;
@@ -49,8 +49,9 @@ export const Selector = styled.div<{
     right: 1.6rem;
     transform: rotate(270deg);
   }
-  ${({ $isOpen, theme }) =>
+  ${({ $isOpen, $isBottomPopup, theme }) =>
     $isOpen &&
+    !$isBottomPopup &&
     css`
       border: 1px solid ${theme.colors.icon2};
       border-bottom-color: ${({ theme }) => theme.colors.line3};
@@ -107,4 +108,12 @@ export const OptionSelectorContainer = styled.div`
   span {
     width: 10rem;
   }
+`;
+
+export const RadioModalContainer = styled.div`
+  padding: 1.6rem;
+`;
+
+export const RadioItemView = styled.div`
+  padding: 1.3rem 0;
 `;

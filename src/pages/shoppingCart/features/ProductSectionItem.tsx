@@ -45,11 +45,16 @@ const ProductSectionItem = ({
   const [showCouponModal, setShowCouponModal] = useState(false);
 
   const { mutateAsync: downloadGoodsCoupon } = useMutation({
-    mutationFn: (code: string) => promotionApi.postDownloadCoupon(code),
+    mutationFn: ({ code, body }: { code: string; body: { goodsId: number } }) =>
+      promotionApi.postDownloadCoupon(code, body),
   });
 
   const downloadAllCoupon = async () => {
-    const codeList = couponInfo?.filter((item) => !item.downloadYn).flatMap((item) => item.code);
+    const codeList = couponInfo
+      ?.filter((item) => !item.downloadYn)
+      .flatMap((item) => {
+        return { code: item.code, body: { goodsId: item.goodsId } };
+      });
     if (!codeList?.length) return;
 
     try {
@@ -62,7 +67,7 @@ const ProductSectionItem = ({
     refetchCoupon();
   };
 
-  const downlaodAll = couponInfo?.every((item) => {
+  const downloadAll = couponInfo?.every((item) => {
     return item.downloadYn;
   });
 
@@ -92,9 +97,9 @@ const ProductSectionItem = ({
 
         {couponInfo.length > 0 && (
           <Button
-            title={downlaodAll ? '쿠폰보기' : '쿠폰받기'}
+            title={downloadAll ? '쿠폰보기' : '쿠폰받기'}
             size='xsm'
-            btnType='highlight'
+            btnType={downloadAll ? 'tertiary' : 'highlight'}
             onClick={() => setShowCouponModal(true)}
           />
         )}
@@ -158,7 +163,7 @@ const ProductSectionItem = ({
                 <Coupon
                   key={coupon.code + index}
                   info={coupon}
-                  type='Double'
+                  type={coupon.typeEnum.code}
                   goodsId={1}
                   refetch={refetchCoupon}
                 />
@@ -169,9 +174,9 @@ const ProductSectionItem = ({
               <Button
                 width='100%'
                 align='center'
-                title={downlaodAll ? '전체 다운로드 완료' : '전체 다운로드'}
+                title={downloadAll ? '전체 다운로드 완료' : '전체 다운로드'}
                 onClick={downloadAllCoupon}
-                disabled={downlaodAll}
+                disabled={downloadAll}
               />
             </S.BottomButtonView>
           </>

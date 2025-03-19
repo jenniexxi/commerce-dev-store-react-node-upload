@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import styled, { css, keyframes } from 'styled-components';
 
 import { pxToRem } from '@utils/display';
@@ -80,6 +81,7 @@ export const ModalView = styled.div<{ type: ModalTypes; $isAnimated: boolean }>`
           `};
         `;
       case 'bottomSheet':
+      case 'expandableBottomSheet':
         return css`
           bottom: 0;
           height: auto;
@@ -119,10 +121,81 @@ export const BottomHeader = styled.div`
     height: 2.4rem;
   }
 `;
-export const ScrollView = styled.div<{ $type: 'bottomSheet' | 'full' }>`
+
+// span이 독립적으로 움직이지 않도록 수정
+export const BottomHeaderWithoutTitle = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 3.2rem;
+  cursor: grab;
+  width: 100%;
+  touch-action: none;
+  user-select: none;
+  pointer-events: none; /* 자식 요소에 이벤트가 전달되지 않도록 설정 */
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  span {
+    width: 5rem;
+    height: 0.5rem;
+    border-radius: 0.25rem;
+    background-color: ${({ theme }) => theme.colors.line3};
+    pointer-events: none; /* 드래그 이벤트가 span에 직접 영향을 주지 않도록 */
+  }
+`;
+
+export const ExpandableHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 6.4rem;
+  padding: 0 16px;
+  background-color: #ffffff;
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  h1 {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    color: ${({ theme }) => theme.colors.text3};
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: -0.32px;
+    pointer-events: none; /* 드래그 이벤트가 h1에 영향을 주지 않도록 */
+  }
+
+  .btnClose {
+    position: absolute;
+    top: 50%;
+    right: 1.6rem;
+    transform: translateY(-50%);
+    z-index: 101; /* 버튼이 다른 요소 위에 오도록 */
+    pointer-events: auto; /* 클릭 이벤트가 작동하도록 */
+  }
+`;
+
+export const ScrollView = styled.div<{ $type: 'bottomSheet' | 'full' | 'expandableBottomSheet' }>`
   ${({ $type }) => {
     switch ($type) {
       case 'bottomSheet':
+      case 'expandableBottomSheet':
       case 'full':
         return css`
           flex: 1;
@@ -138,6 +211,67 @@ export const ScrollView = styled.div<{ $type: 'bottomSheet' | 'full' }>`
         return '';
     }
   }}
+`;
+
+export const MotionChildView = styled(motion.div)<{
+  type: ModalTypes;
+  $width: number;
+  $radius: number;
+  $isExpanded?: boolean;
+}>`
+  background: #ffffff;
+
+  ${({ type, $width, $radius, $isExpanded }) => {
+    switch (type) {
+      case 'center':
+        return css`
+          border-radius: ${pxToRem($radius)};
+          width: ${pxToRem($width - HORIZONTAL_GAP * 2)};
+        `;
+
+      case 'topSheet':
+        return css`
+          border-bottom-left-radius: ${pxToRem($radius)};
+          border-bottom-right-radius: ${pxToRem($radius)};
+          width: ${pxToRem($width)};
+        `;
+      case 'bottomSheet':
+        return css`
+          border-top-left-radius: ${pxToRem($radius)};
+          border-top-right-radius: ${pxToRem($radius)};
+          width: ${pxToRem($width)};
+          display: flex;
+          flex-direction: column;
+          max-height: 80vh;
+        `;
+      case 'expandableBottomSheet':
+        return css`
+          border-radius: ${$isExpanded ? '0' : `${pxToRem($radius)} ${pxToRem($radius)} 0 0`};
+          width: ${pxToRem($width)};
+          display: flex;
+          flex-direction: column;
+          max-height: ${$isExpanded ? '100vh' : '80vh'};
+          height: ${$isExpanded ? '100vh' : 'auto'};
+          position: fixed;
+          bottom: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          transition:
+            border-radius 0.3s ease,
+            max-height 0.3s ease,
+            height 0.3s ease;
+        `;
+      case 'full':
+        return css`
+          display: flex;
+          flex-direction: column;
+          max-height: 100vh;
+          height: 100%;
+        `;
+      default:
+        return '';
+    }
+  }};
 `;
 
 export const ChildView = styled.div<{
@@ -162,6 +296,7 @@ export const ChildView = styled.div<{
           width: ${pxToRem($width)};
         `;
       case 'bottomSheet':
+      case 'expandableBottomSheet':
         return css`
           border-top-left-radius: ${pxToRem($radius)};
           border-top-right-radius: ${pxToRem($radius)};
@@ -205,7 +340,7 @@ export const TextModalWrapper = styled.div`
   }
 `;
 
-export const topHeader = styled.div`
+export const TopHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;

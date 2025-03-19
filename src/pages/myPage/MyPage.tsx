@@ -41,7 +41,7 @@ const MyPage = () => {
 
   const navigate = useNavigate();
 
-  useHeader('마이쇼핑');
+  useHeader('마이쇼핑', { showHeader: true });
   // eslint-disable-next-line no-undef
   const recentClickGoodsId = localStorage.getItem(RECENT_CLICK_GOODSID_KEY);
 
@@ -142,7 +142,7 @@ const MyPage = () => {
               />
             </figure>
             <S.ProfileText>
-              <S.ProfileName>{buyerInfo?.data.buyer.buyerName}</S.ProfileName>
+              <S.ProfileName>{buyerInfo?.data?.buyer.buyerName}</S.ProfileName>
               <S.TopReviewer>TOP리뷰어 </S.TopReviewer>
               <S.BestReviewer>베스트리뷰어</S.BestReviewer>
             </S.ProfileText>
@@ -160,7 +160,7 @@ const MyPage = () => {
             />
           </S.IconGroup>
         </S.BasicSection>
-        {!buyerInfo?.data.buyer.pay010UseYn && (
+        {!buyerInfo?.data?.buyer.pay010UseYn && (
           <S.UseSection>
             <S.GoToUseGroup>
               010PAY 머니&포인트
@@ -189,10 +189,6 @@ const MyPage = () => {
                 </S.SaveText>
               </S.Tit>
               <S.TxtLink to='/MyPage'>{showPriceText(data?.data?.pay010?.availablePay010Mileage)}</S.TxtLink>
-            </S.PointItem>
-            <S.PointItem>
-              <S.Tit>쇼핑지원금</S.Tit>
-              <S.TxtLink to='/MyPage'>{showPriceText(data?.data?.mileage.availableMileage)}</S.TxtLink>
             </S.PointItem>
           </S.PointList>
         </S.MySection>
@@ -233,7 +229,7 @@ const MyPage = () => {
                         <S.Status $code={item.itemStatusEnum.code}>{item.itemStatusEnum.codeName}</S.Status>
                         <S.Date>{dayjs(item.orderDate).format('YYYY.MM.DD')}</S.Date>
                       </S.StatusBox>
-                      <S.DetailBox to='/MyPage'>
+                      <S.DetailBox>
                         <img
                           src={item.imageFilesUrl}
                           alt=''
@@ -290,7 +286,7 @@ const MyPage = () => {
               </Link>
             </S.MenuItem>
             <S.MenuItem>
-              <Link to='/MyPage'>
+              <Link to={PAGE_ROUTES.GOODS_QNAS_CHECK.path}>
                 <S.MenuTit>상품문의</S.MenuTit>
                 <S.NotiCount></S.NotiCount>
               </Link>

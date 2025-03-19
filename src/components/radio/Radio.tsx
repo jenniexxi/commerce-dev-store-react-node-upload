@@ -1,33 +1,56 @@
+import { T } from '@commons';
+
+import { fonts } from '@styles/theme';
+
 import * as S from './Radio.style';
 
-export type RadioItem = {
+export type RadioItem<T> = {
   id: string;
   label: string;
-  value: string;
+  value: T;
   radioGroup: string;
 };
 
-type RadioProps = {
+type RadioProps<T> = {
   id: string;
   label: string;
-  value: string;
+  value: T;
   name: string;
-  selectedValue: string;
-  onChange: (value: string) => void;
+  selectedValue: T;
+  fontType?: keyof typeof fonts;
+  onChange: (value: T) => void;
 };
 
-const Radio = ({ id, label, value, name, selectedValue, onChange }: RadioProps) => {
+const Radio = <T,>({
+  id,
+  label,
+  value,
+  name,
+  selectedValue,
+  onChange,
+  fontType = 'caption1_normal',
+}: RadioProps<T>) => {
+  const checked = selectedValue === value;
   return (
     <S.RadioContainer>
       <S.RadioInput
         type='radio'
         id={id}
         name={name}
-        value={value}
-        checked={selectedValue === value}
-        onChange={() => onChange(value)}
+        value={String(value)}
+        checked={checked}
+        onChange={(e) => {
+          e.stopPropagation();
+          onChange(value);
+        }}
       />
-      <S.RadioLabel htmlFor={id}>{label}</S.RadioLabel>
+      <S.RadioLabel
+        $selected={checked}
+        htmlFor={id}
+        $fontType={fontType}
+      >
+        {label}
+      </S.RadioLabel>
     </S.RadioContainer>
   );
 };

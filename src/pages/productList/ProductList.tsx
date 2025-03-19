@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@components';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
-import { useAuthStore } from '@stores/useAuthStore';
+import { useAuth, useAuthStore } from '@stores/useAuthStore';
 
 import { useHeader } from '@hooks/useHeader';
 
@@ -26,7 +26,7 @@ export const ProductList = () => {
   useHeader('', {
     showHeader: false,
   });
-  const { setToken } = useAuthStore();
+  const { login } = useAuth();
 
   // const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery<SalesListData>({
   //   queryKey: ['produceList', type],
@@ -67,7 +67,7 @@ export const ProductList = () => {
   };
 
   const changeToken = (index: number) => {
-    setToken(TOKEN[index]);
+    login(TOKEN[index]);
   };
 
   const tempStyle = {

@@ -16,7 +16,7 @@ import SearchProductItem from './features/SearchProductItem';
 
 const PAGE_LIMIT = 20;
 
-const SEARCH_TYPE_RADIO: RadioItem[] = [
+const SEARCH_TYPE_RADIO: RadioItem<string>[] = [
   { id: 'radio1', label: '인기', value: DISPLAY_GOODS_SORT_TYPE.BEST, radioGroup: 'group1' },
   { id: 'radio2', label: '최신', value: DISPLAY_GOODS_SORT_TYPE.NEW, radioGroup: 'group1' },
   { id: 'radio3', label: '낮은가격', value: DISPLAY_GOODS_SORT_TYPE.LOW_PRICE, radioGroup: 'group1' },
@@ -29,7 +29,7 @@ const SearchProduct = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [sortType, setSortType] = useState<DisplayGoodsSortTypeCode>(DISPLAY_GOODS_SORT_TYPE.BEST);
 
-  useHeader('검색', { showRightButton: false });
+  useHeader('검색', { showHeader: true, showRightButton: false });
 
   const { data: autoCompleteKeyword } = useQuery({
     queryKey: ['searchAutoComplete', keyword],
@@ -135,7 +135,7 @@ const SearchProduct = () => {
           onClick={handleSearch}
         />
 
-        {showAutoComplete && autoCompleteKeyword?.data.length > 0 && (
+        {showAutoComplete && autoCompleteKeyword && autoCompleteKeyword?.data.length > 0 && (
           <S.SearchKeywordView>
             {autoCompleteKeyword?.data.map((item: { keyword: string }) => (
               <Button

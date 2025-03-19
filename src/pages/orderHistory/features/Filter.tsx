@@ -334,6 +334,7 @@ const Filter = ({ searchParam, onChange, handleReset }: Props) => {
                   }}
                   value={endDate}
                   formatDay={(_, date) => date.getDate().toString()}
+                  calendarType="gregory" 
                   locale='ko-KR'
                 />
               )}

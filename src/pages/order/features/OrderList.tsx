@@ -9,10 +9,7 @@ import { CustomCartItem } from '@pages/shoppingCart/ShoppingCart';
 
 import { colors } from '@styles/theme';
 
-import { currencyCodeToCurrency, numberWithCommas, showPriceText, showShippingPriceText } from '@utils/display';
-
-import { Price } from '@apis/apiCommonType';
-import { CartsList } from '@apis/shoppingCartApi';
+import { showPriceText, showShippingPriceText } from '@utils/display';
 
 import * as S from './_Order.style';
 

@@ -23,7 +23,7 @@ import ClaimHistorySectionItem from './features/ClaimHistorySectionItem';
 import Filter from './features/Filter';
 
 const ClaimHistory = () => {
-  useHeader('취소/교환/반품 조회');
+  useHeader('취소/교환/반품 조회', { showHeader: true });
   const key = useLocation()?.state?.key ?? MYPAGE_CLAIM_SORT_CODES.ALL_CLAIM;
 
   const [searchParams, setSearchParams] = useState({

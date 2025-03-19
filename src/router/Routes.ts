@@ -55,7 +55,11 @@ export const PAGE_ROUTES: RouteConfigMap = {
   },
   SHOPPING_POINT: {
     path: '/mypage/shoppingpoint',
-    filePath: '/mypage/shoppingPoint/ShoppingPoint',
+    filePath: 'mypage/shoppingPoint/ShoppingPoint',
+  },
+  GOODS_QNAS_CHECK: {
+    path: '/goodsQnasCheck',
+    filePath: 'productInquiry/ProductInquiryCheck',
   },
 } as const;
 
@@ -126,5 +130,13 @@ export const PAGE_WITHOUT_FOOTER_ROUTES: RouteConfigMap = {
   MANAGE_ADDRESS: {
     path: '/manageAddress',
     filePath: 'manageAddress/ManageAddress',
+  },
+  OAUTH_GOOGLE: {
+    path: '/auth/:snsId',
+    filePath: 'auth/OAuthRedirect',
+  },
+  ORDER_COMPLETE: {
+    path: '/order/complete',
+    filePath: 'orderComplete/OrderComplete',
   },
 } as const;

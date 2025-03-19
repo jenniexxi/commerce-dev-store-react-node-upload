@@ -59,11 +59,8 @@ const Accordion = ({ items, defaultOpenIndex = -1, isGroup = true, isOpenAll = f
   return (
     <>
       {items.map((item, index) => (
-        <>
-          <S.Accordion
-            key={item.title.toString() + index}
-            $active={activeIndexes.includes(index)}
-          >
+        <React.Fragment key={item.title.toString() + index}>
+          <S.Accordion $active={activeIndexes.includes(index)}>
             <S.AccordionTrigger onClick={() => handleClick(index)}>
               {typeof item.title === 'string' ? <T.Headline2B>{item.title}</T.Headline2B> : item.title}
 
@@ -88,7 +85,7 @@ const Accordion = ({ items, defaultOpenIndex = -1, isGroup = true, isOpenAll = f
             )}
           </S.Accordion>
           <Separator $height={8} />
-        </>
+        </React.Fragment>
       ))}
     </>
   );

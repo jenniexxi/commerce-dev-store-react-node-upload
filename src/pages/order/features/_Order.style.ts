@@ -1,9 +1,11 @@
 import { T } from '@commons';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 import { colors, neutral } from '@styles/theme';
 
-export const OrderSummaryContainer = styled.div``;
+export const OrderSummaryContainer = styled.div`
+  padding: 0 1.6rem 2rem;
+`;
 
 export const OrderSummaryItem = styled.dl`
   display: flex;
@@ -11,29 +13,38 @@ export const OrderSummaryItem = styled.dl`
   align-items: flex-start;
   font-size: 1.4rem;
   & ~ dl {
-    margin-top: 0.5rem;
+    margin-top: 0.8rem;
   }
   dt {
-    font-size: 16px;
-    line-height: 22px;
-    letter-spacing: -0.3px;
     display: flex;
     flex: 1 1;
-    min-width: 0;
-    font-weight: bold;
+    ${({ theme }) => theme.fonts.body2_normalm};
   }
   dd {
+    ${({ theme }) => theme.fonts.body1_normalm};
+
     dl {
     }
+  }
+
+  dd.discount {
+    color: ${({ theme }) => theme.colors.secondary1};
   }
 `;
 export const OrderSummaryItemDep = styled.dd`
   flex-basis: 100%;
   min-width: 0;
   margin-top: 0.8rem;
-  margin-bottom: 0.8rem;
+
   dt {
-    font-size: 1.3rem;
+    ${({ theme }) => theme.fonts.body3_normal};
+    color: ${({ theme }) => theme.colors.text4};
+  }
+  dd {
+    ${({ theme }) => theme.fonts.body3_normal};
+    color: ${({ theme }) => theme.colors.text4};
+    dd dl {
+    }
   }
 `;
 export const OrderSummaryTotal = styled.dl`
@@ -41,8 +52,7 @@ export const OrderSummaryTotal = styled.dl`
   flex-wrap: wrap;
   align-items: flex-start;
   font-size: 1.4rem;
-  border-top: 1px solid #000;
-  padding-top: 1rem;
+
   dt {
     font-size: 2rem;
     display: flex;
@@ -51,7 +61,12 @@ export const OrderSummaryTotal = styled.dl`
     font-weight: bold;
   }
   dd {
-    font-size: 2rem;
+    ${({ theme }) => theme.fonts.headline1b}
+    dd,
+    dt {
+      ${({ theme }) => theme.fonts.body3_normal};
+      color: ${({ theme }) => theme.colors.text4};
+    }
   }
 `;
 export const AddressContainer = styled.div`
@@ -383,4 +398,207 @@ export const CouponInfoRightItem = styled.div`
   align-items: center;
 `;
 
+export const Badge = styled.span`
+  height: 2rem;
+  padding: 0 0.4rem;
+  display: flex;
+  align-items: center;
+  background-color: ${({ theme }) => theme.colors.primary1};
+  border-radius: 0.8rem;
+`;
+
+//#endregion
+
+//#region Mileage
+export const MileageContainer = styled.section`
+  position: relative;
+  padding: 0.4rem 0 2.4rem;
+`;
+
+export const RowView = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.8rem;
+`;
+
+export const InputWrap = styled.div`
+  height: 4.8rem;
+  flex: 1;
+  margin-right: 0.8rem;
+  border: 1px solid ${({ theme }) => theme.colors.line3};
+  padding: 1.3rem 1.6rem;
+  border-radius: 1.2rem;
+  display: flex;
+`;
+
+export const MonyInput = styled.input`
+  text-align: right;
+  flex: 1;
+  ${({ theme }) => theme.fonts.body1_normal};
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.text6};
+    text-align: right;
+  }
+  outline: none;
+  border: none;
+  &:focus {
+    outline: none;
+  }
+`;
+export const RowViewRight = styled(RowView)`
+  justify-content: flex-end;
+`;
+//#endregion
+
+//#region CashReceipt
+export const CashReceiptContainer = styled.section`
+  padding: 0 1.6rem 2rem;
+`;
+export const TypeSelector = styled.div`
+  width: 100%;
+  border-radius: 1.2rem;
+  background-color: ${({ theme }) => theme.colors.background2};
+  display: flex;
+  align-items: center;
+  padding: 0.2rem;
+  margin-top: 0.8rem;
+`;
+
+export const ReceiptType = styled.div<{ $isSelected: boolean }>`
+  border-radius: 1.2rem;
+  width: 50%;
+  height: 4.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  ${({ theme, $isSelected }) =>
+    $isSelected
+      ? css`
+          background-color: ${theme.colors.white};
+          span {
+            ${theme.fonts.body2_normalb};
+            color: ${theme.colors.text3};
+          }
+        `
+      : css`
+          background-color: ${theme.colors.background2};
+          span {
+            ${theme.fonts.body2_normal};
+            color: ${theme.colors.text5};
+          }
+        `}
+`;
+
+export const ReceiptInfoContainer = styled.div`
+  margin-top: 0.8rem;
+  margin-bottom: 1.6rem;
+  > div {
+    & + div {
+      margin-top: 0.8rem;
+    }
+  }
+`;
+//#endregion
+
+//#region RefundInfo
+export const RefundInfoContainer = styled.section`
+  padding: 0 1.6rem 2rem;
+`;
+export const AccountInfoView = styled.section`
+  background-color: ${({ theme }) => theme.colors.background2};
+  padding: 1.6rem;
+  display: flex;
+  align-items: center;
+  border-radius: 1.6rem;
+`;
+export const BankInfoView = styled.div`
+  flex: 1;
+`;
+export const RefundInfoView = styled.div`
+  > input {
+    margin-top: 0.8rem;
+  }
+`;
+
+export const AccountView = styled.div`
+  display: flex;
+  margin-top: 0.8rem;
+  button {
+    margin-left: 0.8rem;
+  }
+`;
+
+//#endregion
+
+//#region BottomButton
+export const PaymentButtonContainer = styled.section`
+  padding: 2rem 1.6rem;
+`;
+//#endregion
+export const SectionTitleWrap = styled.div`
+  padding: 1.45rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const SectionTitleRight = styled.div`
+  display: flex;
+  align-items: center;
+  > div {
+    & + div {
+      margin-left: 1.6rem;
+    }
+  }
+`;
+
+export const FixedButtonView = styled.div`
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem 1.6rem;
+  background: linear-gradient(0deg, ${({ theme }) => theme.colors.background1} 50%, rgba(255, 255, 255, 0) 100%);
+`;
+
+//#region Coupon Modal
+
+export const HeaderInfo = styled.div`
+  padding: 0.8rem 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const OrderItemView = styled.section`
+  overflow-y: auto;
+  background-color: ${({ theme }) => theme.colors.background2};
+  padding: 2rem 1.6rem 9.6rem;
+`;
+
+export const CouponModalView = styled.div`
+  padding: 1.6rem;
+
+  max-height: calc(80vh - 64px - 96px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  scrollbar-width: none;
+`;
+
+export const BottomButtonView = styled.div`
+  padding: 2rem 1.6rem;
+  height: 9.6rem;
+  width: 100%;
+`;
+
+export const FixBottomButton = styled(BottomButtonView)`
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(0deg, ${({ theme }) => theme.colors.background1} 50%, rgba(255, 255, 255, 0) 100%);
+`;
 //#endregion

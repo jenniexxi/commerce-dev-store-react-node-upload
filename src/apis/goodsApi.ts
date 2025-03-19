@@ -60,10 +60,7 @@ export type DetailsContent = {
   instagramUrl: string;
   youtubeUrl: string;
   displayGoodsName: string;
-  displaySaleStatusEnum: {
-    code: string;
-    codeName: string;
-  };
+  displaySaleStatusEnum: Code<GoodsDisplaySalesStatusKey>;
   goodsTypeEnum: {
     code: string;
     codeName: string;

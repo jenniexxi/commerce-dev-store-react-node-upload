@@ -1,6 +1,11 @@
+import { useEffect, useRef, useState } from 'react';
+
 import { Tooltip } from '@components';
+import { useQuery } from '@tanstack/react-query';
 
 import NonModalTooltip from '@components/tooltip/NonModalTooltip';
+
+import { useRRound } from '@hooks/useRRoundPay';
 
 import { colors } from '@styles/theme';
 
@@ -8,6 +13,7 @@ import { showPriceText } from '@utils/display';
 import R from '@utils/resourceMapper';
 
 import { RefundInfoInquiryRespCommon } from '@apis/claimApi';
+import SystemAPI from '@apis/systemApi';
 
 import SvgIcon from '@commons/SvgIcon';
 
@@ -19,6 +25,66 @@ type ClaimAddPayProps = {
 };
 
 const ClaimAddPay = ({ refundInfo, title }: ClaimAddPayProps) => {
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  const { error, initialize, initializePayment, renderPaymentUI, updatePaymentUI, requestPayment } = useRRound();
+
+  const hfPaymentInstance = useRef(null);
+
+  const { data: paymentReqInfo } = useQuery({
+    queryKey: ['paymentReqInfo'],
+    queryFn: () => SystemAPI.getPaymentRequireInfo(),
+  });
+
+  useEffect(() => {
+    if (paymentReqInfo?.success) {
+      const initSDK = async () => {
+        try {
+          // API에서 shopId 가져오기
+
+          // SDK 초기화
+          await initialize({
+            shopId: paymentReqInfo.data.hectoPg.shopId,
+            mode: 'development',
+          });
+
+          setIsInitialized(true);
+        } catch (err) {
+          console.error('SDK 초기화 실패:', err);
+        }
+      };
+
+      initSDK();
+    }
+  }, [paymentReqInfo, initialize]);
+
+  useEffect(() => {
+    if (!paymentReqInfo?.success) return;
+
+    if (!isInitialized) return;
+
+    const setupPayment = async () => {
+      try {
+        const paymentsInstance = await initializePayment({
+          payToken: paymentReqInfo.data.hectoPg.payToken,
+          payPrice: 0,
+          deliveryFee: refundInfo?.addPaymentPrice.number,
+          method: ['ALL'],
+        });
+        hfPaymentInstance.current = paymentsInstance;
+        // 결제 UI 렌더링
+        const paymentMethod = await renderPaymentUI(paymentsInstance, '#payment-container');
+
+        // 결제수단 선택 이벤트 리스닝
+        paymentMethod.event('SELECT_PAYMENTS_METHOD', (method: string) => {});
+      } catch (err) {
+        console.error('결제 초기화 실패:', err);
+      }
+    };
+
+    setupPayment();
+  }, [paymentReqInfo, refundInfo, isInitialized, initializePayment, renderPaymentUI]);
+
   return (
     <>
       <S.OhDetailSecAddWrap>
@@ -159,7 +225,7 @@ const ClaimAddPay = ({ refundInfo, title }: ClaimAddPayProps) => {
           <h2>추가 결제 정보 입력</h2>
         </S.DetailAddTitle>
         <S.AddPayInfoContainer>
-          <S.PayInfoBox>추후 파이낸셜꺼 붙일 예정</S.PayInfoBox>
+          <S.PayInfoBox id={'payment-container'} />
           <S.DescSumm>
             <li>
               결제수단 중 신용카드 및 실시간 계좌이체, 간편결제는 자동 환불 처리되며 기타 결제수단을 통해 결제하신

@@ -1,9 +1,14 @@
 import {
   BankCode,
+  CashReceiptTypeCode,
   ClaimTypeKey,
   DeliveryTrackingType,
   GoodsCustomMadeType,
+  GoodsDisplaySalesStatusKey,
+  IdentityTypeCode,
   ItemStateKey,
+  MaximumMileageType,
+  MileageUnitCode,
   MypageSortKey,
   PaymentMethodCode,
   PaymentStatusCode,
@@ -20,6 +25,33 @@ export type CouponType = {
   availableCouponList: AvailableCouponList[] | null;
   usedCouponList: UsedCouponList[];
 };
+
+export type MileageInfo = {
+  useYn: boolean;
+  name: string;
+  unit: string;
+  useUnitEnum: Code<MileageUnitCode>;
+  minimumPriceYn: boolean;
+  minimumPrice?: Price;
+  maximumTypeEnum: Code<MaximumMileageType>;
+  maximumMileage?: Price;
+  maximumRate?: number;
+  availableMileage: Price;
+  totalDepositExpectedMileage: Price;
+};
+
+export type RefundBankInfo = {
+  bankEnum: Code<BankCode>;
+  bankAccountNumber: string;
+  bankAccountHolder: string;
+};
+
+export type CashReceipt = {
+  purposeEnum: Code<CashReceiptTypeCode>;
+  identityTypeEnum: Code<IdentityTypeCode>;
+  identity: string;
+};
+
 export type OrderItem = {
   cartList: CartsList[];
   buyerAddress: {
@@ -46,31 +78,8 @@ export type OrderItem = {
     clauseHtml: string;
     desc: string | null;
   }[];
-  mileage: {
-    useYn: boolean;
-    name: string;
-    unit: string;
-    useUnitEnum: {
-      code: string;
-      codeName: string;
-    };
-    minimumPriceYn: boolean;
-    minimumPrice: Price | null;
-    maximumTypeEnum: {
-      code: string;
-      codeName: string;
-    } | null;
-    maximumMileage: Price | null;
-    maximumRate: number | null;
-    availableMileage: Price | null;
-    totalDepositExpectedMileage: Price;
-  };
-  pay010Mileage: {
-    availablePay010Mileage: {
-      number: number;
-      currencyCode: string;
-    };
-  };
+  mileage: MileageInfo;
+  pay010Mileage: MileageInfo;
   coupon: CouponType;
   dupCoupon: CouponType;
   storeCoupon: CouponType;
@@ -83,6 +92,8 @@ export type OrderItem = {
     codeName: string;
   };
   firstOrderPaymentYn: boolean;
+  bank: RefundBankInfo;
+  cashReceipt: CashReceipt;
 };
 
 export type AvailableCouponList = {
@@ -114,11 +125,15 @@ export type OrderSummaryData = {
   shippingPrice: Price;
   addShippingPrice: Price;
   useMileage: Price;
+  usePay010Mileage: Price;
   paymentPrice: Price;
   pgPaymentPrice: Price;
   totalDepositExpectedMileage: Price;
   maximumUsableMileage: Price;
   mileageUseYn: boolean;
+  totalDepositExpectedPay010Mileage: Price;
+  maximumUsablePay010Mileage: Price;
+  pay010MileageUseYn: boolean;
 };
 
 export type OrderSummaryBody = {
@@ -408,6 +423,85 @@ export type BuyConfirmFinishResp = APIResponse & {
   };
 };
 
+export type CreateOrderAddress = {
+  name: string;
+  contactNumber: string;
+  zipCode: string;
+  address: string;
+  addressDetail: string;
+  shippingMessage?: string;
+  shippingName?: string;
+  basicYn?: boolean;
+};
+
+export type CreateOrderCoupon = {
+  cartId: number;
+  couponId: number;
+  couponIssueId: number;
+  goodsId: number;
+  goodsOptionId: number;
+  couponDiscountPrice: Price;
+  couponCode: string;
+  displayName: string;
+};
+
+export type CreateOrderPayment = {
+  paymentMethodEnum: string;
+  paymentMethodSelectYn: boolean;
+  bankUseAgainYn: boolean;
+  cashReceiptUseAgainYn: boolean;
+};
+
+export type CreateOrderBuyer = {
+  name: string;
+  email: string;
+  cellPhone: string;
+  nonBuyerPassword?: string;
+};
+export type CreateOrderReq = {
+  cartIdList: number[];
+  delCartIdList: number[];
+  buyer: CreateOrderBuyer;
+  address: CreateOrderAddress;
+  useTotalCouponDiscountPrice?: Price;
+  useCouponDiscountPrice?: Price;
+  useDupCouponDiscountPrice?: Price;
+  useStoreCouponDiscountPrice?: Price;
+  usedCouponList?: CreateOrderCoupon[];
+  usedDupCouponList?: CreateOrderCoupon[];
+  usedStoreCoupon?: CreateOrderCoupon[];
+  useMileage?: Price;
+  usePay010Mileage?: Price;
+  payment?: CreateOrderPayment;
+};
+export type CreateOrderData = {
+  paymentGatewayIdEncrypt: string;
+  pgPaymentPrice: Price;
+  failList: {
+    cartId: number;
+    saleStock: number;
+    buyerMaxBuyCnt: number;
+    displaySaleStatusEnum: Code<GoodsDisplaySalesStatusKey>;
+    maxBuyCnt: number;
+    minBuyCnt: number;
+    buyerAvailableEnum: {
+      code: string;
+      success: boolean;
+      fail: boolean;
+      message: string;
+    };
+  }[];
+  messageEnum: {
+    code: string;
+    success: boolean;
+    fail: boolean;
+    message: string;
+  };
+};
+
+type CreateOrderResp = APIResponse & {
+  data: CreateOrderData;
+};
 /**
  * getOrderPage: 주문서 작성 화면 정보 조회
  * orderRefundAccount: (orders) 기존 주문 환불 계좌 조회
@@ -484,6 +578,15 @@ const orderApi = {
   buyConfirmFinish: (orderItemIdEncryptList: string): Promise<BuyConfirmFinishResp> => {
     return axiosInstance
       .patch(OrderUrl.buyConfirmFinish, null, { params: { orderItemIdEncryptList: orderItemIdEncryptList } })
+      .then((resp) => resp.data)
+      .catch((e) => {
+        console.error('API Error:', e);
+        throw e;
+      });
+  },
+  createOrder: (body: CreateOrderReq): Promise<CreateOrderResp> => {
+    return axiosInstance
+      .post(OrderUrl.createOrder, body)
       .then((resp) => resp.data)
       .catch((e) => {
         console.error('API Error:', e);

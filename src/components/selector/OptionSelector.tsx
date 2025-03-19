@@ -88,6 +88,7 @@ const OptionSelector = ({ options, onChange, optionCount = 1 }: Props) => {
           selector.push(
             <S.OptionSelectorContainer key={'optionSelector' + optionCount + index}>
               <Selector
+                defaultOpen={true}
                 placeholder={name}
                 options={firstSelector}
                 defaultValue={firstValue}

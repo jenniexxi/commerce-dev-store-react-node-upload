@@ -13,9 +13,10 @@ import * as S from './_ProductDetail.style';
 type Props = {
   goodsInfo?: DetailsContent;
   goodsId: number;
+  storeName: string;
 };
 
-const ProductDetailTab = ({ goodsInfo, goodsId }: Props) => {
+const ProductDetailTab = ({ goodsInfo, goodsId, storeName }: Props) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLessThanLimit, setIsLessThanLimit] = useState(false);
   const detailContentRef = useRef<HTMLDivElement>(null);
@@ -103,6 +104,8 @@ const ProductDetailTab = ({ goodsInfo, goodsId }: Props) => {
         <ProductDetailTabQnA
           goodsId={goodsId}
           qnaSize={goodsInfo.goodsQnaTotal}
+          goodsInfo={goodsInfo}
+          storeName={storeName}
         />
       ),
     },

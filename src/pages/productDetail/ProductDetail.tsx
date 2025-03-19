@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -8,7 +8,7 @@ import { FEEDBACK_SORT_TYPE } from '@type';
 
 import IconButton from '@components/button/IconButton';
 import CountBadge from '@components/count/CountBadge';
-import { hideModal, showModal } from '@components/modal/ModalManager';
+import { showModal } from '@components/modal/ModalManager';
 
 import { useHeader } from '@hooks/useHeader';
 
@@ -21,7 +21,7 @@ import R from '@utils/resourceMapper';
 import favoritesAPI from '@apis/favoritesApi';
 import GoodsAPI from '@apis/goodsApi';
 import MyPageAPI from '@apis/mypageApi';
-import shoppingCartApi from '@apis/shoppingCartApi';
+import promotionApi from '@apis/promotionApi';
 
 import { RECENT_CLICK_GOODSID_KEY } from '@constants/constants';
 
@@ -41,27 +41,18 @@ import ProductStoreBest from './features/ProductStoreBest';
 import ProductTag from './features/ProductTag';
 import ProductVideo from './features/ProductVideo';
 
-export type ItemProp = {
-  name: string;
-  minCount?: number;
-  quantity: number;
-  price: number;
-  goodsId?: number;
-  goodsOptionId?: number;
-};
-
 export const ProductDetail = () => {
   const { goodsId = '' } = useParams<{ goodsId: string }>();
 
+  const [showBuyModal, setShowBuyModal] = useState(false);
   const [selectOption, setSelectOption] = useState<number>(-1);
-  const [buyItems, setBuyItems] = useState<ItemProp[]>([]);
   const [showImageView, setShowImageView] = useState(false);
   const [imageList, setImageList] = useState<string[]>([]);
 
   const navigate = useNavigate();
-  const buyModalId = useRef('');
 
   useHeader('', {
+    showHeader: true,
     showRightButton: true,
     rightElement: (
       <>
@@ -69,13 +60,12 @@ export const ProductDetail = () => {
           onClick={() => {}}
           img={R.svg.icoSearch}
         />
-        <div>
-          <IconButton
-            onClick={() => {
-              navigate(PAGE_WITHOUT_FOOTER_ROUTES.SHOPPINGCART.path);
-            }}
-            img={R.svg.icoShoppingbag}
-          />
+        <div
+          onClick={() => {
+            navigate(PAGE_WITHOUT_FOOTER_ROUTES.SHOPPINGCART.path);
+          }}
+        >
+          <IconButton img={R.svg.icoShoppingbag} />
           <CountBadge count={9} />
         </div>
       </>
@@ -133,6 +123,11 @@ export const ProductDetail = () => {
     },
   });
 
+  const { data: couponData, refetch: refetchCoupon } = useQuery({
+    queryKey: ['getCoupon', goodsId],
+    queryFn: () => promotionApi.getGoodsCoupon(Number(goodsId)),
+  });
+
   // const { data: favoriteGoods } = useQuery({
   //   queryKey: ['getFavoriteGoods', goodsId.toString()],
   //   queryFn: () => favoritesApi.getFavoriteGoods(goodsId.toString()),
@@ -163,14 +158,6 @@ export const ProductDetail = () => {
       }),
   });
 
-  const { data: miniCartData } = useQuery({
-    queryKey: ['getMiniCartItem', Number(goodsId)],
-    queryFn: () => {
-      return shoppingCartApi.getMiniCartList(Number(goodsId));
-    },
-    enabled: !!data,
-  });
-
   useEffect(() => {
     if (goodsId) {
       // eslint-disable-next-line no-undef
@@ -180,62 +167,26 @@ export const ProductDetail = () => {
 
   useEffect(() => {
     if (data) {
+      if (!data.success) {
+        showModal.text(data?.error.message, { rightonClick: () => navigate(-1) });
+
+        return;
+      }
       const additionalImages = data.data?.addImageFilesUrlList || [];
       setImageList([data.data?.originImageFilesUrl, ...additionalImages]);
     }
   }, [data]);
 
-  const selectOptionId = useCallback((id: number) => {
-    setSelectOption(id);
-  }, []);
-
-  const handleBuyItemsUpdate = useCallback((newItems: ItemProp[]) => {
-    setBuyItems(newItems);
-  }, []);
-
-  const getInitialItems = useCallback((): ItemProp[] => {
-    if (buyItems.length > 0) return buyItems;
-
-    if (miniCartData?.data.optionNameList && miniCartData?.data.optionNameList.length === 0) {
-      return [
-        {
-          name: data?.data.displayGoodsName || '',
-          minCount: data?.data.minBuyCnt || 1,
-          quantity: data?.data.minBuyCnt || 1,
-          price: price?.data.salePrice.number || 0,
-          goodsId: parseInt(goodsId),
-        },
-      ];
-    }
-    return [];
-  }, [buyItems, miniCartData, data, goodsId]);
-
   const clickBuyButton = () => {
-    const initialItems = getInitialItems();
-    buyModalId.current = showModal.custom(
-      <ProductBuyModal
-        goodsId={parseInt(goodsId)}
-        miniCartData={miniCartData}
-        selectOptionId={selectOptionId}
-        buyItem={initialItems}
-        navigate={navigate}
-        hideBuyModal={hideBuyModal}
-        onItemsUpdate={handleBuyItemsUpdate}
-        initialSelectOption={selectOption}
-      />,
-      {
-        type: 'bottomSheet',
-        showCloseBtn: true,
-        radius: 0,
-        backDropColor: '#00000030',
-        closeBtnPosition: { right: 5, top: 5, size: 26 },
-      },
-    );
+    setShowBuyModal(true);
   };
 
   const hideBuyModal = useCallback(() => {
-    hideModal(buyModalId.current);
-    buyModalId.current = '';
+    setShowBuyModal(false);
+  }, []);
+
+  const selectOptionId = useCallback((id: number) => {
+    setSelectOption(id);
   }, []);
 
   if (!goodsId) return;
@@ -278,6 +229,8 @@ export const ProductDetail = () => {
         goodsInfo={data?.data}
         goodsPriceInfo={price?.data}
         myPageInfo={myPage?.data}
+        couponData={couponData}
+        refetch={refetchCoupon}
       />
       <ProductDileveryInfo
         goodsId={parseInt(goodsId)}
@@ -301,6 +254,7 @@ export const ProductDetail = () => {
       <ProductDetailTab
         goodsInfo={data?.data}
         goodsId={Number(goodsId)}
+        storeName={companyStore?.data.storeName || ''}
       />
       <ProductTag
         goodsInfo={data?.data}
@@ -337,6 +291,15 @@ export const ProductDetail = () => {
           <ImageViewer imageList={imageList} />
         </Modal>
       )}
+      <ProductBuyModal
+        isVisible={showBuyModal}
+        hideBuyModal={hideBuyModal}
+        goodsInfo={data?.data}
+        goodsId={parseInt(goodsId)}
+        initialSelectOption={selectOption}
+        priceInfo={price?.data}
+        selectOptionId={selectOptionId}
+      />
     </S.ProductDetailContainer>
   );
 };

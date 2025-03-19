@@ -3,56 +3,62 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button, Modal } from '@components';
-import { AllOrderStates } from '@type';
+import { AllOrderStates, GoodsDisplaySalesStatus } from '@type';
 
 import { showModal } from '@components/modal/ModalManager';
 
+import { PAGE_ROUTES } from '@router/Routes';
+
 import { showPriceText } from '@utils/display';
 
+import GoodsAPI from '@apis/goodsApi';
 import { OrderListGoods, OrderListShippingList } from '@apis/orderApi';
 
 import MoreMenuBottomSheet from './MoreMenuBottomSheet';
 import * as S from './_OrderHistory.style';
 
-type Props = { shippingList: OrderListShippingList };
-const OrderHistorySectionGoods = ({ shippingList }: Props) => {
+type Props = { shippingList: OrderListShippingList; ordersIdEncrypt: string };
+const OrderHistorySectionGoods = ({ shippingList, ordersIdEncrypt }: Props) => {
   const showCancelAll = shippingList.goodsList[0].itemStatusEnum.code === AllOrderStates.Order.DR;
 
   const [showBottomSheet, setShowBottomSheet] = useState(false);
+  const [selectedGoods, setSelectedGoods] = useState<OrderListGoods | null>(null);
   const navigate = useNavigate();
-  // if (!goods.orderItemIdEncrypt) {
-  //   showModal.text('제품 정보가 잘못되었습니다.', {
-  //     buttonType: 'single',
-  //     rightonClick: () => {
-  //       navigate(-1);
-  //       hideAllModals();
-  //     },
-  //   });
-  //   return;
-  // }
 
-  const moveToProductDetail = () => {
-    // GoodsAPI.getDetails(goods.goodsId).then((resp) => {
-    //   if (resp.success) {
-    //     if (resp.data.displaySaleStatusEnum.code === GoodsDisplaySalesStatus.Stop) {
-    //       showModal.text('판매가 중지 되었습니다.');
-    //     } else if (resp.data.displaySaleStatusEnum.code === GoodsDisplaySalesStatus.End) {
-    //       showModal.text('판매하지 않는 상품입니다.');
-    //     } else {
-    //       navigate('/productdetail/' + goods.goodsId);
-    //     }
-    //   } else {
-    //     showModal.text('판매하지 않는 상품입니다.');
-    //   }
-    // });
+  const moveToProductDetail = (goodsId: number) => {
+    GoodsAPI.getGoods(goodsId).then((resp) => {
+      if (resp.success) {
+        if (resp.data.displaySaleStatusEnum.code === GoodsDisplaySalesStatus.Stop) {
+          showModal.text('판매가 중지 되었습니다.');
+        } else if (resp.data.displaySaleStatusEnum.code === GoodsDisplaySalesStatus.End) {
+          showModal.text('판매하지 않는 상품입니다.');
+        } else {
+          navigate('/productdetail/' + goodsId);
+        }
+      } else {
+        showModal.text('판매하지 않는 상품입니다.');
+      }
+    });
   };
-  const showBottomModal = () => {
+  const showBottomModal = (goods: OrderListGoods) => {
+    setSelectedGoods(goods);
     setShowBottomSheet(true);
   };
 
-  const showReasonModal = (title: string | JSX.Element, content: string) => {
-    showModal.text(title, {
-      content,
+  const hideBottomSheet = () => {
+    setShowBottomSheet(false);
+    setSelectedGoods(null);
+  };
+
+  const moveToCancelAll = (orderShippingPriceIdEncrypt: string, orderItemIdEncrypt: string) => {
+    navigate(PAGE_ROUTES.CLAIM_REQUEST.path, {
+      state: {
+        type: 'Cancel',
+        ordersIdEncrypt,
+        orderShippingPriceIdEncrypt,
+        isCheckboxState: false,
+        orderItemIdEncrypt,
+      },
     });
   };
 
@@ -67,7 +73,7 @@ const OrderHistorySectionGoods = ({ shippingList }: Props) => {
         return null;
 
       default:
-        return <S.MoreButton onClick={showBottomModal}>:</S.MoreButton>;
+        return <S.MoreButton onClick={() => showBottomModal(goods)}>:</S.MoreButton>;
     }
   };
 
@@ -80,15 +86,9 @@ const OrderHistorySectionGoods = ({ shippingList }: Props) => {
           <S.ReasonText
             onClick={(e) => {
               e.stopPropagation();
-              showReasonModal(
-                <>
-                  <div>
-                    {goods.brandName} {goods.displayGoodsName}
-                  </div>
-                  <div>{goods.goodsOption}</div>
-                </>,
-                goods.rejectReason,
-              );
+              showModal.text(`${goods.brandName} ${goods.displayGoodsName}\n${goods.goodsOption}`, {
+                content: goods.rejectReason,
+              });
             }}
           >
             거부사유 확인 &gt;
@@ -107,15 +107,9 @@ const OrderHistorySectionGoods = ({ shippingList }: Props) => {
           <S.ReasonText
             onClick={(e) => {
               e.stopPropagation();
-              showReasonModal(
-                <>
-                  <div>
-                    {goods.brandName} {goods.displayGoodsName}
-                  </div>
-                  <div>{goods.goodsOption}</div>
-                </>,
-                goods.delayReason,
-              );
+              showModal.text(`${goods.brandName} ${goods.displayGoodsName}\n${goods.goodsOption}`, {
+                content: goods.delayReason,
+              });
             }}
           >
             배송지연 사유 확인
@@ -133,8 +127,6 @@ const OrderHistorySectionGoods = ({ shippingList }: Props) => {
     return list;
   };
 
-  const a = () => {};
-
   return (
     <S.OrderHistorySectionGoodsContainer>
       {shippingList.goodsList.map((goods) => (
@@ -143,7 +135,7 @@ const OrderHistorySectionGoods = ({ shippingList }: Props) => {
             <S.PayState $code={goods.itemStatusEnum.code || goods.claimTypeEnum.code}>
               {goods.itemStatusEnum.codeName || goods.claimTypeEnum.codeName}
             </S.PayState>
-            <S.ProductInfo onClick={moveToProductDetail}>
+            <S.ProductInfo onClick={() => moveToProductDetail(goods.goodsId)}>
               <img
                 src={goods.imageFilesUrl}
                 alt={goods.displayGoodsName}
@@ -179,22 +171,12 @@ const OrderHistorySectionGoods = ({ shippingList }: Props) => {
               {showMoreButton(goods)}
             </S.AddGoodsContainer>
           ))}
-          {showBottomSheet && (
-            <Modal
-              type='bottomSheet'
-              onHide={() => {
-                setShowBottomSheet(false);
-              }}
-            >
-              <MoreMenuBottomSheet goodsInfo={goods} />
-            </Modal>
-          )}
           {goods.reShippingGoodsList.map((goods) => (
             <S.ExchangeBoxPart>
               <S.PayState $code={goods.itemStatusEnum.code || goods.claimTypeEnum.code}>
                 {goods.itemStatusEnum.codeName || goods.claimTypeEnum.codeName}
               </S.PayState>
-              <S.ProductInfo onClick={moveToProductDetail}>
+              <S.ProductInfo onClick={() => moveToProductDetail(goods.goodsId)}>
                 <img
                   src={goods.imageFilesUrl}
                   alt={goods.displayGoodsName}
@@ -223,12 +205,26 @@ const OrderHistorySectionGoods = ({ shippingList }: Props) => {
       ))}
       {showCancelAll && (
         <Button
+          onClick={() => moveToCancelAll(shippingList.orderShippingPriceIdEncrypt, '')}
           title='전체취소'
           size='xsm'
           btnType='tertiary'
           width={'100%'}
           align='center'
         />
+      )}
+      {showBottomSheet && selectedGoods && (
+        <Modal
+          type='bottomSheet'
+          onHide={hideBottomSheet}
+        >
+          <MoreMenuBottomSheet
+            goodsInfo={selectedGoods}
+            ordersIdEncrypt={ordersIdEncrypt}
+            orderShippingPriceIdEncrypt={shippingList.orderShippingPriceIdEncrypt}
+            orderItemIdEncrypt={selectedGoods.orderItemIdEncrypt}
+          />
+        </Modal>
       )}
     </S.OrderHistorySectionGoodsContainer>
   );

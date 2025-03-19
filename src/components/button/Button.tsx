@@ -10,7 +10,7 @@ export type BtnType = 'primary' | 'secondary' | 'tertiary' | 'text' | 'highlight
 /**
  * 버튼의 크기를 정의하는 타입
  */
-export type BtnSize = 'lg' | 'md' | 'sm' | 'xsm';
+export type BtnSize = 'lg' | 'md' | 'sm' | 'xsm' | 'text';
 
 /**
  * 버튼 컴포넌트의 Props 타입
@@ -32,6 +32,7 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   /** 정렬 */
   align?: 'center';
   textHighLight?: boolean;
+  color?: string;
 };
 
 /**
@@ -56,6 +57,7 @@ const Button = ({
   align,
   textHighLight = false,
   className,
+  color,
   ...props
 }: Props) => {
   return (
@@ -66,6 +68,7 @@ const Button = ({
       $align={align}
       className={className}
       $textHighLight={textHighLight}
+      $color={color}
       {...props}
     >
       {leftIcon && (

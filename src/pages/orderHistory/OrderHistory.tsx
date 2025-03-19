@@ -23,7 +23,7 @@ import Filter from './features/Filter';
 import OrderHistorySectionGoods from './features/OrderHistorySectionGoods';
 
 const OrderHistory = () => {
-  useHeader('주문조회');
+  useHeader('주문조회', { showHeader: true });
   const key = useLocation()?.state?.key ?? MYPAGE_SORT_CODES.ALL_ORDER;
 
   const [searchParams, setSearchParams] = useState({
@@ -120,6 +120,7 @@ const OrderHistory = () => {
                     <OrderHistorySectionGoods
                       key={item.orderShippingPriceIdEncrypt}
                       shippingList={item}
+                      ordersIdEncrypt={content.ordersIdEncrypt}
                     />
                   ))}
                 </S.OrderHistorySectionContainer>
